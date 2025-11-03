@@ -18,6 +18,7 @@ var local_name: String
 var milestones_in_itempool: bool = false
 var crypto_levels_in_itempool: bool = false
 var bossdrops_setting: int = 0
+var full_tree_visibility: bool = true
 var goal: int = 0
 
 
@@ -251,6 +252,9 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			hint_make.global_position = child.global_position + Vector2(-2,-2)
 			hint_location_parsed.connect(hint_make._is_hint_location)
 			child.clicked.connect(hint_make._upgrade_node_clicked)
+			
+			if full_tree_visibility == true:
+				child.visible = true
 
 
 
@@ -275,8 +279,12 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 	upgrade_node.spring()
 	
 	upgradeTree.update_upgrade_visiblity(upgrade_node)
+	if full_tree_visibility == true:
+		upgrade_node.visible = true
 	for connected_node: UpgradeNode in upgrade_node.connected_nodes:
 		upgradeTree.update_upgrade_visiblity(connected_node)
+		if full_tree_visibility == true:
+			connected_node.visible = true
 
 
 func _check_location_scout(chain: ModLoaderHookChain, upgrade_node: UpgradeNode) -> void: # Hooks Upgrade Tree Update Upgrade Visibilty Function.
