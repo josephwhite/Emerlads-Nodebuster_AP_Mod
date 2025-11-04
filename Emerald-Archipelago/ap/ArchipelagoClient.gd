@@ -10,7 +10,7 @@ const GAME_NAME = "Nodebuster" ## Your game name.
 
 var _client
 var _initiated_disconnect = false
-var _try_wss = false
+var _try_wss = true
 
 var _datapackages = {}
 var _pending_packages = []
@@ -78,7 +78,7 @@ func _process(_delta):
 func _reset_state():
 	_client.should_process = false
 	_authenticated = false
-	_try_wss = false
+	_try_wss = true
 
 func _closed(should_retry: bool, message: String):
 	if message != "":
@@ -302,7 +302,7 @@ func connectToServer(ap_server, ap_name, ap_pass):
 	var url = ""
 	if ap_server.begins_with("ws://") or ap_server.begins_with("wss://"):
 		url = ap_server
-		_try_wss = false
+		_try_wss = not _try_wss
 	elif _try_wss:
 		url = "wss://" + ap_server
 		_try_wss = false
