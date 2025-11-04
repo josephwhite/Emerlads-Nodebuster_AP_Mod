@@ -294,7 +294,10 @@ func connectToServer(ap_server, ap_name, ap_pass):
 	_ap_user = ap_name
 	_ap_pass = ap_pass
 	
-	ap_server = "wss://" + ap_server
+	if _try_wss:
+		ap_server = "wss://" + ap_server
+	else:
+		ap_server = "ws://" + ap_server
 
 	var url = ""
 	if ap_server.begins_with("ws://") or ap_server.begins_with("wss://"):
