@@ -20,6 +20,9 @@ var crypto_levels_in_itempool: bool = false
 var bossdrops_setting: int = 0
 var goal: int = 0
 
+# Possible values: Full, Classification, Player, AP
+var vague_items: String = "Player"
+
 
 
 const MOD_NAME = "Emerald-Archipelago"
@@ -358,13 +361,14 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 	
 	var player_name: String = scouted_location["playerName"]
 	var item_name: String = scouted_location["itemName"]
+	var item_classification: String = scouted_location["itemClassification"]
 	
 	var item_description: String = "{Item_Description}\n{Location_Name}"
 
 	if player_name.contains("you"):
 		player_name = player_name.insert(player_name.find("[/"),"r")
 		player_name += " "
-		
+
 		var item = MilestoneStore.search(item_name)
 		if item != null:
 			item_description = item_description.format({"Item_Description":item.unlock_desc})
@@ -374,7 +378,18 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 	
 	item_description = item_description.format({"Location_Name": ap_location_name})
 
-	var item_to_give_name = player_name + item_name
+	var item_to_give_name = ""
+	# Possible values: Full, Classification, Player, AP
+	if vague_items == "Full":
+		item_to_give_name = player_name + item_name
+	elif vague_items == "Classification":
+		item_to_give_name = "An Archipelago " + item_classification + " Item"
+	elif vague_items == "Player":
+		item_to_give_name = player_name + "Archipelago Item"
+	elif vague_items == "AP":
+		item_to_give_name = "An Archipelago Item"
+	else:
+		item_to_give_name = "An Archipelago Item"
 	
 	for milestone_entry in milestonePage.milestone_vbox.get_children():
 		
@@ -517,6 +532,7 @@ func _get_scout_data(scout_data) -> void: # When scout data is retrieved parse i
 		loc_data["locationID"] = item.locationId
 		loc_data["playerName"] = item.playerName
 		loc_data["itemName"] = item.itemName
+		loc_data["itemClassification"] = item.classificationName
 		var idx: String = apClient._location_id_to_name[item.locationId]
 		scouted_locations[idx] = loc_data
 

@@ -389,6 +389,7 @@ func _parseNetworkItem(networkItem: Dictionary) -> NetworkItemAP:
 func _tryUpdatingNetworkItem(networkItem: NetworkItemAP) -> void:
 	networkItem.playerName = _getPlayerName(networkItem.playerId, false)
 	networkItem.itemName = _getItemName(networkItem.itemId)
+	networkItem.classificationName = _getItemClassification(networkItem.flag)
 	networkItem.color = colorForItemType(networkItem.flag)
 
 func _getPlayerName(playerId: int, displaySlotName: bool = false) -> String:
@@ -460,6 +461,18 @@ func colorForItemType(flags):
 	else:  # filler
 		return "#14de9e"
 
+
+func _getItemClassification(flags):
+	var int_flags = int(flags)
+	if int_flags & 1:  # 0b001
+		return "Progression"
+	elif int_flags & 2:  # 0b010
+		return "Useful"
+	elif int_flags & 4:  # 0b100
+		return "Trap"
+	else:  # 0
+		return "Filler"
+
 class NetworkItemAP:
 	var playerId: int
 	var flag: int
@@ -467,6 +480,7 @@ class NetworkItemAP:
 	var locationId: int
 	var playerName: String
 	var itemName: String
+	var classificationName: String
 	var color: String
 
 	func displayUnlock():
