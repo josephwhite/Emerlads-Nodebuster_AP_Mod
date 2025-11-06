@@ -255,6 +255,9 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			
 			if full_tree_visibility == true:
 				child.visible = true
+				if (Refs.upgrade_processor.check_upgrade_unlocked(child) == false):
+					child.button.set_disabled(true)
+					#child.upgrade_icon.set_outline_color(Color("040404"))
 
 
 
@@ -281,10 +284,17 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 	upgradeTree.update_upgrade_visiblity(upgrade_node)
 	if full_tree_visibility == true:
 		upgrade_node.visible = true
+		var upgrade_purchaseable: bool = Refs.upgrade_processor.check_upgrade_unlocked(upgrade_node)
+		if (upgrade_purchaseable == false):
+			upgrade_node.button.set_disabled(true)
+			#upgrade_node.upgrade_icon.set_outline_color(Color("040404"))
 	for connected_node: UpgradeNode in upgrade_node.connected_nodes:
 		upgradeTree.update_upgrade_visiblity(connected_node)
 		if full_tree_visibility == true:
 			connected_node.visible = true
+			if (Refs.upgrade_processor.check_upgrade_unlocked(connected_node) == false):
+				#connected_node.upgrade_icon.set_outline_color(Color("040404"))
+
 
 
 func _check_location_scout(chain: ModLoaderHookChain, upgrade_node: UpgradeNode) -> void: # Hooks Upgrade Tree Update Upgrade Visibilty Function.
@@ -695,8 +705,9 @@ func _ap_mine_level_up() -> void:
 # Prestige/Boss/Battle Functions
 
 
-
 # Location/Check Functions
+
+
 # Upgrade Functions
 
 
