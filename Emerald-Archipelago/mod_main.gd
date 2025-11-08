@@ -779,8 +779,9 @@ func _state_save(chain: ModLoaderHookChain) -> Dictionary:
 	save["nums"] = State.nums.save()
 	save["crypto_mine"] = State.crypto_mine.save()
 	save["ap_info"] = {"address":apClient._ap_server,"slot_name":apClient._ap_user}
+	save["ap_max_prestige"] = State.max_prestige
 	save.erase("stats")
-	
+
 	return save
 
 
@@ -792,6 +793,7 @@ func _state_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
 			set(property.name, save[property.name])
 	State.nums = Numbers.new().load_save(save.nums)
 	State.crypto_mine = CryptoMine.new().load_save(save.crypto_mine)
+	State.max_prestige = save["ap_max_prestige"]
 	if save.has("ap_info"):
 		local_server = save.ap_info.address
 		local_name = save.ap_info.slot_name
