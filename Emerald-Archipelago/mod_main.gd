@@ -234,6 +234,7 @@ func _shop_scene_ready(chain:ModLoaderHookChain) -> void:
 
 func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 	chain.execute_next()
+	const COLOR_BLACK = Color("000000")
 	var children: Array[Node] = upgradeTree.get_children()
 	for child: Node in children:
 		if child is UpgradeNode:
@@ -257,14 +258,23 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 				child.visible = true
 				if (Refs.upgrade_processor.check_upgrade_unlocked(child) == false):
 					child.button.set_disabled(true)
-					#child.upgrade_icon.set_outline_color(Color("040404"))
-
+					var child_icon = child.upgrade_icon
+					#child_icon.set_outline_color(COLOR_BLACK)
+				if (Refs.upgrade_processor.check_upgrade_unlocked(child) == true):
+					child.button.set_disabled(false)
+					child.refresh_ui()
+				for connected_node: UpgradeNode in child.connected_nodes:
+					if (Refs.upgrade_processor.check_upgrade_unlocked(connected_node) == false):
+						var connected_icon = connected_node.upgrade_icon
+						# TODO: fix to actually recolor if not available yet
+						connected_icon.set_outline_color(COLOR_BLACK)
 
 
 func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) -> void: # When the client buys an upgrade and is connected. will increase the upgrade nodes level without giving the upgrade.
 	if is_client_connected == false:
 		chain.execute_next([upgrade_node])
 		return
+	const COLOR_BLACK = Color("000000")
 	var upgrade: Upgrade = upgrade_node.upgrade
 	if not upgrade.can_buy(): return
 	var cost = upgrade.get_cost()
@@ -287,13 +297,18 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 		var upgrade_purchaseable: bool = Refs.upgrade_processor.check_upgrade_unlocked(upgrade_node)
 		if (upgrade_purchaseable == false):
 			upgrade_node.button.set_disabled(true)
-			#upgrade_node.upgrade_icon.set_outline_color(Color("040404"))
+			# TODO: fix to actually recolor if not available yet
+			upgrade_node.upgrade_icon.set_outline_color(COLOR_BLACK)
 	for connected_node: UpgradeNode in upgrade_node.connected_nodes:
 		upgradeTree.update_upgrade_visiblity(connected_node)
 		if full_tree_visibility == true:
 			connected_node.visible = true
 			if (Refs.upgrade_processor.check_upgrade_unlocked(connected_node) == false):
-				#connected_node.upgrade_icon.set_outline_color(Color("040404"))
+				# TODO: fix to actually recolor if not available yet
+				connected_node.upgrade_icon.set_outline_color(COLOR_BLACK)
+			else:
+				connected_node.button.set_disabled(false)
+				connected_node.refresh_ui()
 
 
 
