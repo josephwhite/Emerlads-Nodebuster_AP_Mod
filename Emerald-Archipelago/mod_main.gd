@@ -538,6 +538,7 @@ func _parse_hint(hint_location:String) -> void:
 func _death_found() -> void: # If server sends death link death. Kill client if in battle scene.
 	if battleScene == null: return
 	if apClient._death_link == false: return
+	Effects.floating_text("DEATHLINKED", battleScene.player_cursor.global_position, MyColors.RED)
 	battleScene.health_bar.die()
 
 # Send Information to Server
