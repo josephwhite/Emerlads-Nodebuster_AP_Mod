@@ -252,14 +252,14 @@ func _on_data(packet: PackedByteArray):
 						"Sent [color=%s]%s[/color] to %s" % [item_color, item_name, player_name]
 					)
 		elif cmd == "Bounced":
-			if not _death_link:
-				return
-			if (message.has("tags") and message.has("data") and message["tags"].has("DeathLink")):
+			# Deathlink
+			if (_death_link and message.has("tags") and message.has("data") and message["tags"].has("DeathLink")):
 				if message["data"].has("source") and message["data"]["source"] == _ap_user:
 					return # Skip deaths from self
 				var tstamp: float = message["data"].get("time", 0.0)
-				if is_equal_approx(tstamp, last_sent_deathlink_time):
-					return # Skip deaths from self
+				var deathlink_lastvsnow_sec = tstamp - last_sent_deathlink_time
+				if deathlink_lastvsnow_sec < 2:
+					return # Skip deaths too close to the previous death.
 				var first_sentence = "Received Death"
 				var second_sentence = ""
 				if message["data"].has("source"):
@@ -267,7 +267,6 @@ func _on_data(packet: PackedByteArray):
 				if message["data"].has("cause") and message["data"]["cause"] != "":
 					second_sentence = ". Reason: %s" % message["data"]["cause"]
 				emit_signal("logInformations", first_sentence + second_sentence)
-
 				# Makes the dome explode !
 				emit_signal("onDeathFound")
 
