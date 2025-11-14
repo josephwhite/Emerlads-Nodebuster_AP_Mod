@@ -131,6 +131,7 @@ const item_descriptions: Dictionary = {
 # Battle Variables
 var killed_last_boss: bool = false
 
+# Etc Variables
 
 func _init() -> void:
 	ModLoaderMod.add_hook(_ap_on_boss_defeated,"res://Scripts/Battle/BattleScene.gd","_on_boss_defeated")
@@ -813,5 +814,20 @@ func _setup_battle_scene(battleScn: BattleScene) -> void: # When battle scene is
 
 func _health_zeroed_in_fight() -> void: # When you lost all health in battle scene. send death through death link if enabled.
 	if is_client_connected == false: return
-	if apClient._death_link == false: return
-	apClient.sendDeath("Session Terminated.")
+	if apClient._death_link == true:
+		var deathlink_message = _generate_deathlink_message()
+		apClient.sendDeath(deathlink_message)
+
+func _generate_deathlink_message() -> String:
+	var deathlink_message = ""
+	var rare_chance = [1,2,3,4].pick_random()
+	if rare_chance > 1:
+		set(deathlink_message, "%s's session was terminated." % [_ap_user])
+	else:
+		var rare_death_msgs = [
+			"%s 401'd" % [_ap_user],
+			"%s was terminated at prestige %s" % [_ap_user, State.curr_prestige],
+			"%s failed to nodebust." % [_ap_user],
+		]
+		set(deathlink_message, rare_death_msgs.pick_random())
+	return deathlink_message

@@ -435,6 +435,7 @@ func connectToRoom(ap_user, ap_pass):
 func sendDeath(cause: String):
 	if not _death_link:
 		return
+	emit_signal("logInformations", "Sending Death")
 	last_sent_deathlink_time = Time.get_unix_time_from_system()
 	sendMessage(
 		[
