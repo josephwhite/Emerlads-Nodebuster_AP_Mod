@@ -21,7 +21,7 @@ var bossdrops_setting: int = 0
 var goal: int = 0
 
 # Possible values: Full, Classification, Player, AP
-var vague_items: String = "Player"
+var vague_items: String = "Classification"
 
 
 
@@ -310,6 +310,7 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	
 	var player_name: String = scouted_location["playerName"]
 	var item_name: String = scouted_location["itemName"]
+	var item_classification: String = scouted_location["itemClassification"]
 
 	var item_description: String = "{Item_Description}\n{Item_Name}"
 
@@ -328,7 +329,19 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	
 	item_description = item_description.format({"Item_Name": ap_item_name})
 
-	var item_to_give_name = player_name + item_name
+	var item_to_give_name = ""
+	# Possible values: Full, Classification, Player, AP
+	if vague_items == "Full":
+		item_to_give_name = player_name + item_name
+	elif vague_items == "Classification":
+		item_to_give_name = "An Archipelago " + item_classification + " Item"
+	elif vague_items == "Player":
+		item_to_give_name = player_name + "Archipelago Item"
+	elif vague_items == "AP":
+		item_to_give_name = "An Archipelago Item"
+	else:
+		item_to_give_name = "An Archipelago Item"
+
 
 	upgradeDescription.upgrade_name.text = item_to_give_name
 	upgradeDescription.description.text = "[center]%s[/center]" % item_description
