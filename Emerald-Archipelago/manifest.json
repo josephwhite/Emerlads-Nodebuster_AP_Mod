@@ -4,13 +4,14 @@
 	"extra": {
 		"godot": {
 			"authors": [
-				"Emerald"
+				"Emerald", "josephwhite"
 			],
 			"compatible_game_version": [
 				"1.3"
 			],
 			"compatible_mod_loader_version": [
-				"6.2.0"
+				"6.2.0",
+				"7.0.1"
 			],
 			"config_schema": {
 
@@ -20,11 +21,11 @@
 			"incompatibilities": [],
 			"load_before": [],
 			"optional_dependencies": [],
-			"tags": []
+			"tags": ["randomzier"]
 		}
 	},
 	"name": "Archipelago",
 	"namespace": "Emerald",
-	"version_number": "0.1.0",
+	"version_number": "0.1.1",
 	"website_url": ""
 }
