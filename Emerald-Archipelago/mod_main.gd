@@ -268,6 +268,7 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 						var connected_icon = connected_node.upgrade_icon
 						# TODO: fix to actually recolor if not available yet
 						connected_icon.set_outline_color(COLOR_BLACK)
+					_resize_tree(upgradeTree, connected_node)
 
 
 func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) -> void: # When the client buys an upgrade and is connected. will increase the upgrade nodes level without giving the upgrade.
@@ -299,6 +300,7 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 			upgrade_node.button.set_disabled(true)
 			# TODO: fix to actually recolor if not available yet
 			upgrade_node.upgrade_icon.set_outline_color(COLOR_BLACK)
+		_resize_tree(upgradeTree, upgrade_node)
 	for connected_node: UpgradeNode in upgrade_node.connected_nodes:
 		upgradeTree.update_upgrade_visiblity(connected_node)
 		if full_tree_visibility == true:
@@ -309,7 +311,7 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 			else:
 				connected_node.button.set_disabled(false)
 				connected_node.refresh_ui()
-
+			_resize_tree(upgradeTree, upgrade_node)
 
 
 func _check_location_scout(chain: ModLoaderHookChain, upgrade_node: UpgradeNode) -> void: # Hooks Upgrade Tree Update Upgrade Visibilty Function.
@@ -366,6 +368,13 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	
 	upgradeDescription.update_cost_text()
 	propagate_notification(NOTIFICATION_VISIBILITY_CHANGED)
+
+
+func _resize_tree(upgrade_tree:UpgradeTree, upgrade_node:UpgradeNode) -> void: # Resize upgrade tree around node
+	upgrade_tree.top_left.x = min(upgrade_tree.top_left.x, upgrade_node.position.x)
+	upgrade_tree.top_left.y = min(upgrade_tree.top_left.y, upgrade_node.position.y)
+	upgrade_tree.bot_right.x = max(upgrade_tree.bot_right.x, upgrade_node.position.x+upgrade_node.size.x)
+	upgrade_tree.bot_right.y = max(upgrade_tree.bot_right.y, upgrade_node.position.y+upgrade_node.size.y)
 
 
 # Milestone Page Functions
