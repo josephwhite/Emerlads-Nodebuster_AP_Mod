@@ -10,7 +10,6 @@
 				"1.3"
 			],
 			"compatible_mod_loader_version": [
-				"6.2.0",
 				"7.0.1"
 			],
 			"config_schema": {
