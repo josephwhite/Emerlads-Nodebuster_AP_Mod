@@ -36,6 +36,7 @@ var milestonePage: MilestonesPage
 var shopScene: ShopScene
 
 var progressiveItemStore: Node
+var trapProcessor: Node
 
 
 # Crypto Mine Variables
@@ -176,6 +177,11 @@ func _ready():
 	call_deferred("add_child",pistore)
 	pistore.modMain = self
 	progressiveItemStore = pistore
+
+	var trapmaster = load("res://mods-unpacked/Emerald-Archipelago/TrapProcessor.gd").new()
+	call_deferred("add_child",trapmaster)
+	trapmaster.modMain = self
+	trapProcessor = trapmaster
 
 	_add_console_scene(self)
 	
