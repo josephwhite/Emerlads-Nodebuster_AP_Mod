@@ -80,7 +80,7 @@ var hinted_locations: Dictionary = {}
 var stored_items: Dictionary = {}
 
 var collected_items: Dictionary = {}
-var collected_milestone_rewards: Array = []
+var collected_milestone_rewards: Dictionary = {}
 
 var stored_loc_item_pairs: Array = []
 
@@ -610,13 +610,20 @@ func _apply_item(itemName,itemID) -> void: # Figures out what the item is and th
 	elif MilestoneStore.search(itemName) != null:
 		var milestone = MilestoneStore.search(itemName)
 		# Prevent regaining resources, now that resources should be properly saved.
-		if (itemName in collected_milestone_rewards):
+		if (itemName in collected_milestone_rewards.has(itemName) and collected_milestone_rewards[itemName] < collected_items[itemName]["count"]):
 			return
 		if new_milestone_data.has(milestone): # If milestone is in the modded milestone data then use custom gain milestone function and return.
 			_ap_gain_milestone(milestone)
+			if collected_milestone_rewards.has(itemName):
+				collected_milestone_rewards[itemName] += 1
+			else:
+				collected_milestone_rewards[itemName] = 1
 			return
 		Refs.upgrade_processor.gain_milestone(milestone)
-		collected_milestone_rewards.append(itemName)
+		if collected_milestone_rewards.has(itemName):
+			collected_milestone_rewards[itemName] += 1
+		else:
+			collected_milestone_rewards[itemName] = 1
 	
 	elif progressiveItemStore.search(itemName) != "":
 		_apply_item(progressiveItemStore.search(itemName),null)
