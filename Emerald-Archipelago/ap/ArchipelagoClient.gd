@@ -265,7 +265,8 @@ func _on_data(packet: PackedByteArray):
 				if message["data"].has("source"):
 					first_sentence = "Received Death from %s" % message["data"]["source"]
 				if message["data"].has("cause") and message["data"]["cause"] != "":
-					second_sentence = ". Reason: %s" % message["data"]["cause"]
+					#second_sentence = ". Reason: %s" % message["data"]["cause"]
+					first_sentence = message["data"]["cause"]
 				emit_signal("logInformations", first_sentence + second_sentence)
 				# Makes the dome explode !
 				emit_signal("onDeathFound")

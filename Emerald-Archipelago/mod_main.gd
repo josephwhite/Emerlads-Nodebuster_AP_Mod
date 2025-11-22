@@ -132,6 +132,7 @@ const item_descriptions: Dictionary = {
 var killed_last_boss: bool = false
 
 # Etc Variables
+var was_killed_by_deathlink: bool = false
 
 func _init() -> void:
 	ModLoaderMod.add_hook(_ap_on_boss_defeated,"res://Scripts/Battle/BattleScene.gd","_on_boss_defeated")
@@ -537,8 +538,9 @@ func _parse_hint(hint_location:String) -> void:
 
 
 func _death_found() -> void: # If server sends death link death. Kill client if in battle scene.
-	if battleScene == null: return
 	if apClient._death_link == false: return
+	if battleScene == null: return
+	was_killed_by_deathlink = true
 	Effects.floating_text("DEATHLINKED", battleScene.player_cursor.global_position, MyColors.RED)
 	battleScene.health_bar.die()
 
@@ -814,20 +816,20 @@ func _setup_battle_scene(battleScn: BattleScene) -> void: # When battle scene is
 
 func _health_zeroed_in_fight() -> void: # When you lost all health in battle scene. send death through death link if enabled.
 	if is_client_connected == false: return
+	if was_killed_by_deathlink == true:
+		was_killed_by_deathlink = false
+		return
 	if apClient._death_link == true:
 		var deathlink_message = _generate_deathlink_message()
 		apClient.sendDeath(deathlink_message)
 
 func _generate_deathlink_message() -> String:
 	var deathlink_message = ""
-	var rare_chance = [1,2,3,4].pick_random()
-	if rare_chance > 1:
-		set(deathlink_message, "%s's session was terminated." % [_ap_user])
-	else:
-		var rare_death_msgs = [
-			"%s 401'd" % [_ap_user],
-			"%s was terminated at prestige %s" % [_ap_user, State.curr_prestige],
-			"%s failed to nodebust." % [_ap_user],
-		]
-		set(deathlink_message, rare_death_msgs.pick_random())
+	var possible_death_msgs = [
+			"%s's session was terminated." % [apClient._ap_user],
+			"%s 401'd." % [apClient._ap_user],
+			"%s was terminated at prestige %s." % [apClient._ap_user, State.curr_prestige],
+			"%s failed to nodebust." % [apClient._ap_user],
+	]
+	deathlink_message = possible_death_msgs.pick_random()
 	return deathlink_message
