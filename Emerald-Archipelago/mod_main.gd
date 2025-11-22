@@ -80,6 +80,7 @@ var hinted_locations: Dictionary = {}
 var stored_items: Dictionary = {}
 
 var collected_items: Dictionary = {}
+var collected_milestone_rewards: Dictionary = {}
 
 var stored_loc_item_pairs: Array = []
 
@@ -608,10 +609,21 @@ func _apply_item(itemName,itemID) -> void: # Figures out what the item is and th
 	# Check if Milestone Item
 	elif MilestoneStore.search(itemName) != null:
 		var milestone = MilestoneStore.search(itemName)
+		# Prevent regaining resources, now that resources should be properly saved.
+		if (collected_milestone_rewards.has(itemName) and collected_milestone_rewards[itemName]["count"] > collected_items[itemName]["count"]):
+			return
 		if new_milestone_data.has(milestone): # If milestone is in the modded milestone data then use custom gain milestone function and return.
 			_ap_gain_milestone(milestone)
+			if collected_milestone_rewards.has(itemName):
+				collected_milestone_rewards[itemName]["count"] += 1
+			else:
+				collected_milestone_rewards[itemName] = {"id":itemID,"count":1}
 			return
 		Refs.upgrade_processor.gain_milestone(milestone)
+		if collected_milestone_rewards.has(itemName):
+			collected_milestone_rewards[itemName]["count"] += 1
+		else:
+			collected_milestone_rewards[itemName] = {"id":itemID,"count":1}
 	
 	elif progressiveItemStore.search(itemName) != "":
 		_apply_item(progressiveItemStore.search(itemName),null)
@@ -779,8 +791,18 @@ func _state_save(chain: ModLoaderHookChain) -> Dictionary:
 	save["nums"] = State.nums.save()
 	save["crypto_mine"] = State.crypto_mine.save()
 	save["ap_info"] = {"address":apClient._ap_server,"slot_name":apClient._ap_user}
+	save["ap_collected_milestone_rewards"] = collected_milestone_rewards
+	save["ap_State_max_prestige"] = State.max_prestige
+	save["ap_State_lab_research_progress"] = State.lab_research_progress
+	save["ap_State_bits"] = State.bits
+	save["ap_State_nodes"] = State.nodes
+	save["ap_State_cores"] = State.cores
+	save["ap_State_sp"] = State.sp
+	save["ap_State_netcoin"] = State.netcoin
+	save["ap_State_processors"] = State.processors
+
 	save.erase("stats")
-	
+
 	return save
 
 
@@ -790,8 +812,17 @@ func _state_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
 	for property in prop_list:
 		if save.has(property.name):
 			set(property.name, save[property.name])
+	collected_milestone_rewards = save["ap_collected_milestone_rewards"]
 	State.nums = Numbers.new().load_save(save.nums)
 	State.crypto_mine = CryptoMine.new().load_save(save.crypto_mine)
+	State.max_prestige = save["ap_State_max_prestige"]
+	State.lab_research_progress = save["ap_State_lab_research_progress"]
+	State.bits = save["ap_State_bits"]
+	State.nodes = save["ap_State_nodes"]
+	State.cores = save["ap_State_cores"]
+	State.sp = save["ap_State_sp"]
+	State.netcoin = save["ap_State_netcoin"]
+	State.processors = save["ap_State_processors"]
 	if save.has("ap_info"):
 		local_server = save.ap_info.address
 		local_name = save.ap_info.slot_name
