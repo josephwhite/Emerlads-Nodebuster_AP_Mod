@@ -52,6 +52,8 @@ custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 size_flags_vertical = 0
 placeholder_text = "Password?"
+secret = true
+secret_character = "*"
 virtual_keyboard_enabled = false
 
 [node name="MarginContainer2" type="MarginContainer" parent="MarginContainer/VBoxContainer/HBoxContainer"]
