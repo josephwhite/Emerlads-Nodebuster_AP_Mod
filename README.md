@@ -1,7 +1,7 @@
 # Nodebuster Archipelago Mod
 
 This is a randomizer mod for Nodebuster that provides integration for [Archipelago](https://archipelago.gg/).
-* [Releases](https://github.com/Emerald836/Emerlads-Nodebuster_AP_Mod/releases)
+* [Releases](https://github.com/josephwhite/Emerlads-Nodebuster_AP_Mod/releases)
 
 ### Things to note
 
@@ -20,7 +20,7 @@ Locations (checks) are the upgrade nodes in the upgrade tree, Milestone rewards,
     * Windows
 * [Godot 4.x Mod Loader](https://github.com/GodotModding/godot-mod-loader/releases) v7.0.1 or later
     * We use this version for the [patch](https://github.com/GodotModding/godot-mod-loader/pull/533) that provides compatability to Nodebuster.
-* [Nodebuster Archipelago Mod](https://github.com/Emerald836/Emerlads-Nodebuster_AP_Mod/releases)
+* [Nodebuster Archipelago Mod](https://github.com/josephwhite/Emerlads-Nodebuster_AP_Mod/releases)
 
 ## Optional Software
 
@@ -31,16 +31,17 @@ Locations (checks) are the upgrade nodes in the upgrade tree, Milestone rewards,
 
 ### Installing Mod Loader and Mod
 
-1. Extract the addons folder from the zip and put it in your Nodebuster files right next to the Executable.
+1. Extract the `addons` folder from the Mod Loader ZIP file and put it in your Nodebuster files right next to the executable `Nodebuster.exe`.
     * This can be found by right clicking on your Nodebuster game in Steam and clicking browse local files.
 2. Go back to Steam and go to the properties window by right clicking your Nodebuster game and clicking properties.
 3. After the window opens find launch options and put `--script addons/mod_loader/mod_loader_setup.gd` in the launch options field. Then open Nodebuster once.
-4. After you opened the game go back to the properties window and remove what we put in the launch options field.
+4. After you opened the game, go back to the properties window and remove what we put in the launch options field.
 5. Go back to the Nodebuster local files, and create a folder named `mods`.
-6. Insert the ZIP file of the [Archipelago mod](https://github.com/Emerald836/Emerlads-Nodebuster_AP_Mod/releases) into the `mods` folder.
+6. Insert the ZIP file of the Archipelago mod into the `mods` folder.
     * Do not unzip the mod file as the mod loader requires it to be zipped.
+    * You may also insert [any other mods](#optional-software) at this point.
 7. Start Nodebuster once more and the game should ask you to restart.
-8. Click `yes`. After restarting the game, the mod will be installed.q
+8. Click `yes`. After restarting the game, the mod will be installed.
 
 ### What to do if the Mod Loader doesn't install correctly
 
