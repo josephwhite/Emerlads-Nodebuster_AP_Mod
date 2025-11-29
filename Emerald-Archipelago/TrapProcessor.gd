@@ -19,6 +19,22 @@ const traplink_item_mapping: Dictionary = {
     "The House Always Wins Trap": "Rigged Trap",
 }
 
+func _process_trap(trap_name: String) -> void:
+    var mapped_trap = ""
+    if (traplink_item_mapping.has(trap_name)):
+        mapped_trap = traplink_item_mapping[trap_name]
+    if mapped_trap == "":
+        return
+    match mapped_trap:
+        "Camera Shake Trap":
+            _deploy_camera_shake_trap()
+        "CRT Trap":
+            _deploy_crt_trap()
+        "Rigged Trap":
+            _deploy_rigged_trap()
+        _:
+            return
+
 func _deploy_camera_shake_trap() -> void:  
     isCameraShaking = true
     var temp_screenshake_intensity = Globals.screenshake_intensity

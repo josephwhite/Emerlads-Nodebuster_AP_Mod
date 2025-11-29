@@ -43,7 +43,6 @@ var trapProcessor: Node
 var ap_mine_level: int = 0 ## Defines how many crypto mine levels have been recieved by the player.
 
 
-
 # Milestone Variables
 var new_milestone_data: Array[Milestone] = [ # Add an entry here for a new milestone. Milestones here won't show up in the milestone page.
 	Milestone.new({
@@ -129,6 +128,7 @@ const item_descriptions: Dictionary = {
 	"Progressive Milestone Reward":"Gives the reward of your next milestone"
 }
 
+
 # Battle Variables
 var killed_last_boss: bool = false
 
@@ -156,11 +156,10 @@ func _init() -> void:
 
 	ModLoaderMod.add_hook(_start_game,"res://Scripts/MainScene.gd","_on_new_game")
 
-func _ready():
 
+func _ready():
 	get_tree().node_added.connect(_node_added)
 	get_tree().node_removed.connect(_node_removed)
-
 
 	var apc = load("res://mods-unpacked/Emerald-Archipelago/ap/ArchipelagoClient.gd").new()
 	call_deferred("add_child",apc)
@@ -170,6 +169,7 @@ func _ready():
 	apc.location_scout_retrieved.connect(_get_scout_data)
 	apc.client_disconnected.connect(_apc_disconnected)
 	apc.onDeathFound.connect(_death_found)
+	apc.onTrapLinked.connect(_trap_found_from_traplink)
 	apc.sync_retrieved.connect(_sync)
 	apc.hint_retrieved.connect(_parse_hint)
 
@@ -257,7 +257,6 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			hint_make.global_position = child.global_position + Vector2(-2,-2)
 			hint_location_parsed.connect(hint_make._is_hint_location)
 			child.clicked.connect(hint_make._upgrade_node_clicked)
-
 
 
 func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) -> void: # When the client buys an upgrade and is connected. will increase the upgrade nodes level without giving the upgrade.
@@ -352,10 +351,8 @@ func _on_milestone_claimed(chain: ModLoaderHookChain, entry:MilestoneEntry) -> v
 
 
 func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
-
 	var ap_location_name = str(_milestone.id)
 	
-
 	var scouted_location = scouted_locations.get(ap_location_name,null)
 	chain.execute_next([_milestone])
 	if scouted_location == null: # If we do not have the upgrade in out scouted_locations then do vanilla function.
@@ -497,6 +494,7 @@ func _sync() -> void:
 	collected_items.clear()
 	progressiveItemStore.reset()
 
+
 # Retrieve Information from Server
 func _recieved_item_from_server(itemID) -> void:
 	var itemName = apClient._getItemName(itemID)
@@ -546,8 +544,14 @@ func _death_found() -> void: # If server sends death link death. Kill client if 
 	if apClient._death_link == false: return
 	battleScene.health_bar.die()
 
-# Send Information to Server
 
+func _trap_found_from_traplink(trap_name: String) -> void:
+	if trapProcessor == null: return
+	if apClient._trap_link == false: return
+	trapProcessor._process_trap(trap_name)
+
+
+# Send Information to Server
 func _check_goal() -> void:
 	match goal:
 		0: # Virus Deployed
@@ -605,7 +609,6 @@ func _apply_item(itemName,itemID) -> void: # Figures out what the item is and th
 		"BossItem":
 			pass
 	
-	
 	# Check if Upgrade Item
 	if UpgradeStore.search(itemName) != null:
 		var upgrade = UpgradeStore.search(itemName)
@@ -622,7 +625,10 @@ func _apply_item(itemName,itemID) -> void: # Figures out what the item is and th
 	elif progressiveItemStore.search(itemName) != "":
 		_apply_item(progressiveItemStore.search(itemName),null)
 		progressiveItemStore.progressive_items[itemName] += 1
-
+	# Check if Trap
+	elif trapProcessor.traplink_item_mapping.has(itemName):
+		trapProcessor._process_trap(itemName)
+		apClient.sendTrapLink(itemName)
 
 
 # Upgrade Functions
@@ -672,7 +678,6 @@ func _ap_gain_upgrade(upgrade:Upgrade): # If an upgrade has different behavior w
 					Refs.curr_scn.show_lab_btn()
 
 
-
 # Milestone Functions
 func _ap_gain_milestone(milestone:Milestone) -> void:
 	match milestone.id:
@@ -691,7 +696,6 @@ func _ap_mine_level_up() -> void:
 
 
 # Prestige/Boss/Battle Functions
-
 
 
 # Location/Check Functions
@@ -742,6 +746,7 @@ func _add_console_scene(node:Node) -> void: ## Spawn console scene
 
 func _ending_ready(endingScn: Ending) -> void: # When ending scene is ready. connect signals.
 	endingScn.anim_player.animation_started.connect(_ending_animation_check)
+
 
 func _ending_animation_check(_anim_name) -> void: # When ending animation is ran. check to see if goal was achieved.
 	_check_goal()
@@ -802,6 +807,7 @@ func _state_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
 		local_server = save.ap_info.address
 		local_name = save.ap_info.slot_name
 
+
 # Upgrade Functions
 func _upgrade_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
 	UpgradeStore.reset()
@@ -820,3 +826,4 @@ func _health_zeroed_in_fight() -> void: # When you lost all health in battle sce
 	if is_client_connected == false: return
 	if apClient._death_link == false: return
 	apClient.sendDeath("Session Terminated.")
+
