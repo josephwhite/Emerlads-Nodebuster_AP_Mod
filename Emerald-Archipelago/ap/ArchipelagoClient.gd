@@ -251,7 +251,12 @@ func _on_data(packet: PackedByteArray):
 						"Sent [color=%s]%s[/color] to %s" % [item_color, item_name, player_name]
 					)
 		elif cmd == "Bounced":
-			if (_death_link and message.has("tags") and message.has("data") and message["tags"].has("DeathLink")):
+			if (
+				_death_link
+				and message.has("tags")
+				and message.has("data")
+				and message["tags"].has("DeathLink")
+			):
 				if message["data"].has("source") and message["data"]["source"] == _ap_user:
 					return
 				
@@ -265,7 +270,6 @@ func _on_data(packet: PackedByteArray):
 
 				# Makes the dome explode !
 				emit_signal("onDeathFound")
-				#emit_signal("onDeathFound", first_sentence + second_sentence)
 
 func _sendConnectUpdate(tags):
 	sendMessage([{"cmd": "ConnectUpdate", "tags": tags}])
