@@ -132,6 +132,8 @@ const item_descriptions: Dictionary = {
 # Battle Variables
 var killed_last_boss: bool = false
 
+# Etc Variables
+const EXTRACOLOR_BLACK = Color("000000")
 
 func _init() -> void:
 	ModLoaderMod.add_hook(_ap_on_boss_defeated,"res://Scripts/Battle/BattleScene.gd","_on_boss_defeated")
@@ -234,7 +236,6 @@ func _shop_scene_ready(chain:ModLoaderHookChain) -> void:
 
 func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 	chain.execute_next()
-	const COLOR_BLACK = Color("000000")
 	var children: Array[Node] = upgradeTree.get_children()
 	for child: Node in children:
 		if child is UpgradeNode:
@@ -256,18 +257,19 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			
 			if full_tree_visibility == true:
 				child.visible = true
-				if (Refs.upgrade_processor.check_upgrade_unlocked(child) == false):
+				var unlocked_child_in_logic = _is_upgrade_node_logically_available(child)
+				if (unlocked_child_in_logic == false):
 					child.button.set_disabled(true)
 					var child_icon = child.upgrade_icon
-					#child_icon.set_outline_color(COLOR_BLACK)
-				if (Refs.upgrade_processor.check_upgrade_unlocked(child) == true):
+					child_icon.set_outline_color(EXTRACOLOR_BLACK)
+				if (unlocked_child_in_logic == true):
 					child.button.set_disabled(false)
 					child.refresh_ui()
 				for connected_node: UpgradeNode in child.connected_nodes:
-					if (Refs.upgrade_processor.check_upgrade_unlocked(connected_node) == false):
+					var unlocked_connected_in_logic = _is_upgrade_node_logically_available(connected_node)
+					if (unlocked_connected_in_logic == false):
 						var connected_icon = connected_node.upgrade_icon
-						# TODO: fix to actually recolor if not available yet
-						connected_icon.set_outline_color(COLOR_BLACK)
+						connected_icon.set_outline_color(EXTRACOLOR_BLACK)
 					_resize_tree(upgradeTree, connected_node)
 
 
@@ -275,7 +277,6 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 	if is_client_connected == false:
 		chain.execute_next([upgrade_node])
 		return
-	const COLOR_BLACK = Color("000000")
 	var upgrade: Upgrade = upgrade_node.upgrade
 	if not upgrade.can_buy(): return
 	var cost = upgrade.get_cost()
@@ -295,19 +296,17 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 	upgradeTree.update_upgrade_visiblity(upgrade_node)
 	if full_tree_visibility == true:
 		upgrade_node.visible = true
-		var upgrade_purchaseable: bool = Refs.upgrade_processor.check_upgrade_unlocked(upgrade_node)
+		var upgrade_purchaseable: bool = _is_upgrade_node_logically_available(upgrade_node)
 		if (upgrade_purchaseable == false):
 			upgrade_node.button.set_disabled(true)
-			# TODO: fix to actually recolor if not available yet
-			upgrade_node.upgrade_icon.set_outline_color(COLOR_BLACK)
+			upgrade_node.upgrade_icon.set_outline_color(EXTRACOLOR_BLACK)
 		_resize_tree(upgradeTree, upgrade_node)
 	for connected_node: UpgradeNode in upgrade_node.connected_nodes:
 		upgradeTree.update_upgrade_visiblity(connected_node)
 		if full_tree_visibility == true:
 			connected_node.visible = true
-			if (Refs.upgrade_processor.check_upgrade_unlocked(connected_node) == false):
-				# TODO: fix to actually recolor if not available yet
-				connected_node.upgrade_icon.set_outline_color(COLOR_BLACK)
+			if (_is_upgrade_node_logically_available(connected_node) == false):
+				connected_node.upgrade_icon.set_outline_color(EXTRACOLOR_BLACK)
 			else:
 				connected_node.button.set_disabled(false)
 				connected_node.refresh_ui()
@@ -375,6 +374,13 @@ func _resize_tree(upgrade_tree:UpgradeTree, upgrade_node:UpgradeNode) -> void: #
 	upgrade_tree.top_left.y = min(upgrade_tree.top_left.y, upgrade_node.position.y)
 	upgrade_tree.bot_right.x = max(upgrade_tree.bot_right.x, upgrade_node.position.x+upgrade_node.size.x)
 	upgrade_tree.bot_right.y = max(upgrade_tree.bot_right.y, upgrade_node.position.y+upgrade_node.size.y)
+
+
+func _is_upgrade_node_logically_available(node: UpgradeNode) -> bool:
+	var unlocked = Refs.upgrade_processor.check_upgrade_unlocked(node)
+	if (node.upgrade.resource_type == ResourceType.NETCOIN and not State.stats.crypto_mine_unlocked):
+		return false
+	return unlocked
 
 
 # Milestone Page Functions
