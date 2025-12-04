@@ -2,8 +2,10 @@ class_name TrapProcessor
 extends Node
 
 var modMain: Node
+
 var isCameraShaking: bool = false
 var isCRT: bool = false
+var isGlitched: bool = false
 var isRigged: bool = false
 
 var waiting_room: Array = []
@@ -12,12 +14,14 @@ const traplink_item_mapping: Dictionary = {
     # Nodebuster Traps
     "Camera Shake Trap": "Camera Shake Trap",
     "CRT Trap": "CRT Trap",
+    "Glitch Trap": "Glitch Trap",
     "Rigged Trap": "Rigged Trap",
     # Traps from other games
     # Custom Aliases
     "Casino Trap": "Rigged Trap",
     "The House Always Wins Trap": "Rigged Trap",
 }
+
 
 func _process_trap(trap_name: String) -> void:
     var mapped_trap = ""
@@ -30,10 +34,13 @@ func _process_trap(trap_name: String) -> void:
             _deploy_camera_shake_trap()
         "CRT Trap":
             _deploy_crt_trap()
+        "Glitch Trap":
+            _deploy_glitch_trap()
         "Rigged Trap":
             _deploy_rigged_trap()
         _:
             return
+
 
 func _deploy_camera_shake_trap() -> void:  
     isCameraShaking = true
@@ -42,6 +49,7 @@ func _deploy_camera_shake_trap() -> void:
     Refs.camera.shake(8, 10, 70)
     Globals.screenshake_intensity = temp_screenshake_intensity
     isCameraShaking = false
+
 
 func _deploy_crt_trap() -> void:
     if(isCRT == true):
@@ -62,6 +70,7 @@ func _deploy_crt_trap() -> void:
     OptionData.apply_option("crt_effect", temp_CRT_option)
     isCRT = false
 
+
 func _reset_crt_shader_params() -> void:
     Refs.crt.material.set_shader_parameter("wobble_speed", 0.1)
     Refs.crt.material.set_shader_parameter("wobble_frequency", 0.3)
@@ -79,6 +88,31 @@ func _reset_crt_shader_params() -> void:
     Refs.crt.material.set_shader_parameter("bloomRadius", 1.0)
     Refs.crt.material.set_shader_parameter("bloomThreshold", 1.0)
     Refs.crt.material.set_shader_parameter("bloomIntensity", 1.0)
+
+
+func _deploy_glitch_trap() -> void:
+    if(isGlitched == true):
+        return
+    isGlitched = true
+    Refs.glitch.material.set_shader_parameter("shake_power", 0.03)
+    Refs.glitch.material.set_shader_parameter("shake_rate", 1.0)
+    Refs.glitch.material.set_shader_parameter("shake_speed", 6.0)
+    Refs.glitch.material.set_shader_parameter("shake_block_size", 200.0)
+    Refs.glitch.material.set_shader_parameter("shake_color_rate", 0.025)
+    Refs.glitch.show()
+    await MyTimer.wait(10.0)
+    _reset_glitch_shader_params()
+    Refs.glitch.hide()
+    isGlitched = false
+
+
+func _reset_glitch_shader_params() -> void:
+    Refs.glitch.material.set_shader_parameter("shake_power", 0.03)
+    Refs.glitch.material.set_shader_parameter("shake_rate", 1.0)
+    Refs.glitch.material.set_shader_parameter("shake_speed", 5.0)
+    Refs.glitch.material.set_shader_parameter("shake_block_size", 240.0)
+    Refs.glitch.material.set_shader_parameter("shake_color_rate", 0.01)
+
 
 func _deploy_rigged_trap() -> void:
     if(isRigged == true):
