@@ -15,11 +15,13 @@ var local_name: String
 
 
 # APWorld Options
-var milestones_in_itempool: bool = false
-var crypto_levels_in_itempool: bool = false
-var bossdrops_setting: int = 0
 var goal: int = 0
 
+# Unused APWorld Options
+# ---
+# var milestones_in_itempool: bool = false
+# var crypto_levels_in_itempool: bool = false
+# var bossdrops_setting: int = 0
 
 
 const MOD_NAME = "Emerald-Archipelago"
@@ -68,7 +70,7 @@ var new_milestone_data: Array[Milestone] = [ # Add an entry here for a new miles
 
 # Upgrade Variables
 var infinities: Array = []
-
+var upgraded_nodes_on_connect: bool = false
 
 # Check Variables
 var scouted_locations: Dictionary = {}
@@ -252,6 +254,9 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			hint_make.global_position = child.global_position + Vector2(-2,-2)
 			hint_location_parsed.connect(hint_make._is_hint_location)
 			child.clicked.connect(hint_make._upgrade_node_clicked)
+	if upgraded_nodes_on_connect == false:
+		_set_upgrade_nodes_on_connection()
+		upgraded_nodes_on_connect = true
 
 
 
@@ -336,6 +341,35 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	propagate_notification(NOTIFICATION_VISIBILITY_CHANGED)
 
 
+# Set Upgrade Node levels on connection/reconnection
+func _set_upgrade_nodes_on_connection() -> void:
+	var cached_upgrade_locs = _get_collected_upgrade_locations_and_levels()
+	var tree_children: Array[Node] = upgradeTree.get_children()
+	for child: Node in tree_children:
+		if child is UpgradeNode:
+			if child.upgrade.id in cached_upgrade_locs:
+				child.upgrade.curr_level = cached_upgrade_locs[child.upgrade.id]
+				child.refresh_ui()
+				#child.spring()
+				upgradeTree.update_upgrade_visiblity(child)
+				for connected_node: UpgradeNode in child.connected_nodes:
+					upgradeTree.update_upgrade_visiblity(connected_node)
+
+
+# Aggregate max level of checked upgrade locations
+func _get_collected_upgrade_locations_and_levels() -> Dictionary:
+	var cached_upgrade_locs = {}
+	if is_client_connected == false:
+		return cached_upgrade_locs
+	for loc in apClient._checked_locations:
+		var loc_name = apClient._location_id_to_name[loc]
+		var loc_and_level = loc_name.rsplit("-", false, 2)
+		if UpgradeStore.search(loc_and_level[0]) != null:
+			if (loc_and_level[0] not in cached_upgrade_locs) or (cached_upgrade_locs[loc_and_level[0]] < loc_and_level[1]):
+				cached_upgrade_locs[loc_and_level[0]] = loc_and_level[1]
+	return cached_upgrade_locs
+
+
 # Milestone Page Functions
 func _on_milestone_claimed(chain: ModLoaderHookChain, entry:MilestoneEntry) -> void:
 	if is_client_connected == false:
@@ -401,9 +435,6 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 
 # Crypto Mine Functions
 func _calculate_speed(chain: ModLoaderHookChain) -> void:
-	if crypto_levels_in_itempool == false:
-		chain.execute_next()
-		return
 	match ap_mine_level:
 		0: State.crypto_mine.curr_speed = 5
 		1: State.crypto_mine.curr_speed = 10
@@ -447,40 +478,29 @@ func _calculate_speed(chain: ModLoaderHookChain) -> void:
 
 func _mine_level_up(chain: ModLoaderHookChain) -> void: # When client level ups CryptoMine if levels are in pool. send check.
 	chain.execute_next()
-	if is_client_connected == false or crypto_levels_in_itempool == false: return
+	if is_client_connected == false: return
 	_send_check("CryptoLevel-"+str(State.crypto_mine.mine_level))
 
 
 # AP Client Functions.
 func _connected_to_room() -> void:
 	is_client_connected = true
-
 	var slot_data = apClient._slot_data
 
 	goal = slot_data["goal"]
 
-	milestones_in_itempool = false
-	crypto_levels_in_itempool = false
-
-	bossdrops_setting = slot_data["bossdrops"]
-
+	# Add new milestones to milestone data.
 	# TODO: Currently this just adds every new milestone. not a problem but if I were to add more then im just adding unneeded data.
-	if bossdrops_setting != 0: # If boss drops are in the pool. Add new milestones to milestone data.
-		for new_milestone: Milestone in new_milestone_data:
-			if MilestoneStore._data_dict.has(new_milestone.id) == true: continue
-			MilestoneStore._data_dict[new_milestone.id] = new_milestone
+	for new_milestone: Milestone in new_milestone_data:
+		if MilestoneStore._data_dict.has(new_milestone.id) == true: continue
+		MilestoneStore._data_dict[new_milestone.id] = new_milestone
 
-	if apClient._slot_data["milestone"] == 1:
-		milestones_in_itempool = true
-
-		var milestone_names: PackedStringArray = [] # Scout for milestone info before the milestone entries get loaded. so even if you get milestones unlocked early they will still display proper rewards and names.
-		for milestone in MilestoneStore.data:
-			var milestone_id = milestone.id
-			milestone_names.append(milestone_id)
-		_send_location_scouts(milestone_names)
-	
-	if apClient._slot_data["crypto"] == 1:
-		crypto_levels_in_itempool = true
+	# Scout for milestone info before the milestone entries get loaded. so even if you get milestones unlocked early they will still display proper rewards and names.
+	var milestone_names: PackedStringArray = []
+	for milestone in MilestoneStore.data:
+		var milestone_id = milestone.id
+		milestone_names.append(milestone_id)
+	_send_location_scouts(milestone_names)
 
 
 func _apc_disconnected() -> void:
@@ -713,10 +733,6 @@ func _ap_mine_level_up() -> void:
 # Prestige/Boss/Battle Functions
 func _ap_on_boss_defeated(chain: ModLoaderHookChain) -> void: # On boss defeat
 	var ap_max_prestige: int = 25
-	match bossdrops_setting:
-		0: # No boss drops in pool so do default.
-			chain.execute_next()
-			return
 	
 	if killed_last_boss: # If you killed the last boss indicated by the ap_max_prestige var then give normal drops.
 		chain.execute_next()
@@ -776,6 +792,8 @@ func _start_game(chain:ModLoaderHookChain) -> void:
 		Refs.popups.pop_curr()
 	if start_game:
 		Saver.create_new_save()
+		collected_milestone_rewards = {}
+		upgraded_nodes_on_connect = false
 		Saver.save_game()
 	Refs.main_scn.enter_shop()
 
