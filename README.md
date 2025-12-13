@@ -19,7 +19,7 @@ Locations (checks) are the upgrade nodes in the upgrade tree, Milestone rewards,
 * [Nodebuster (Steam)](https://store.steampowered.com/app/3107330)
     * Windows
 * [Godot 4.x Mod Loader](https://github.com/GodotModding/godot-mod-loader/releases) v7.0.1 or later
-    * We use this version for the [patch](https://github.com/GodotModding/godot-mod-loader/pull/533) that provides compatability to Nodebuster.
+    * We use this version for the [patch](https://github.com/GodotModding/godot-mod-loader/pull/533) that provides compatibility to Nodebuster.
 * [Nodebuster Archipelago Mod](https://github.com/josephwhite/Emerlads-Nodebuster_AP_Mod/releases)
 
 ## Optional Software
@@ -32,8 +32,8 @@ Locations (checks) are the upgrade nodes in the upgrade tree, Milestone rewards,
 ### Installing Mod Loader and Mod
 
 1. Extract the `addons` folder from the Mod Loader ZIP file and put it in your Nodebuster files right next to the executable `Nodebuster.exe`.
-    * This can be found by right clicking on your Nodebuster game in Steam and clicking browse local files.
-2. Go back to Steam and go to the properties window by right clicking your Nodebuster game and clicking properties.
+    * This can be found by right-clicking on your Nodebuster game in Steam and clicking browse local files.
+2. Go back to Steam and go to the properties window by right-clicking your Nodebuster game and clicking properties.
 3. After the window opens find launch options and put `--script addons/mod_loader/mod_loader_setup.gd` in the launch options field. Then open Nodebuster once.
 4. After you opened the game, go back to the properties window and remove what we put in the launch options field.
 5. Go back to the Nodebuster local files, and create a folder named `mods`.
