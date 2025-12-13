@@ -35,6 +35,7 @@ var _slot_data = {} ## Information of the slot this client is connected to. Stuf
 var _received_indexes = []
 
 var _death_link: bool ## Wether death link is enabled or not.
+var last_sent_deathlink_time: float
 
 signal could_not_connect(errorMessage)
 signal connect_status(message)
@@ -252,23 +253,22 @@ func _on_data(packet: PackedByteArray):
 						"Sent [color=%s]%s[/color] to %s" % [item_color, item_name, player_name]
 					)
 		elif cmd == "Bounced":
-			if (
-				_death_link
-				and message.has("tags")
-				and message.has("data")
-				and message["tags"].has("DeathLink")
-			):
+			# Deathlink
+			if (_death_link and message.has("tags") and message.has("data") and message["tags"].has("DeathLink")):
 				if message["data"].has("source") and message["data"]["source"] == _ap_user:
-					return
-				
+					return # Skip deaths from self
+				var tstamp: float = message["data"].get("time", 0.0)
+				var deathlink_lastvsnow_sec = tstamp - last_sent_deathlink_time
+				if deathlink_lastvsnow_sec < 2:
+					return # Skip deaths too close to the previous death.
 				var first_sentence = "Received Death"
 				var second_sentence = ""
 				if message["data"].has("source"):
 					first_sentence = "Received Death from %s" % message["data"]["source"]
 				if message["data"].has("cause") and message["data"]["cause"] != "":
-					second_sentence = ". Reason: %s" % message["data"]["cause"]
+					#second_sentence = ". Reason: %s" % message["data"]["cause"]
+					first_sentence = message["data"]["cause"]
 				emit_signal("logInformations", first_sentence + second_sentence)
-
 				# Makes the dome explode !
 				emit_signal("onDeathFound")
 
@@ -438,20 +438,23 @@ func connectToRoom(ap_user, ap_pass):
 	)
 	
 func sendDeath(cause: String):
-	if _death_link:
-		sendMessage(
-			[
-				{
-					"cmd": "Bounce",
-					"tags": ["DeathLink"],
-					"data": {
-						"time": Time.get_unix_time_from_system(),
-						"cause": cause,
-						"source": _ap_user
-					}
+	if not _death_link:
+		return
+	emit_signal("logInformations", "Sending Death")
+	last_sent_deathlink_time = Time.get_unix_time_from_system()
+	sendMessage(
+		[
+			{
+				"cmd": "Bounce",
+				"tags": ["DeathLink"],
+				"data": {
+					"time": last_sent_deathlink_time,
+					"cause": cause,
+					"source": _ap_user
 				}
-			]
-		)
+			}
+		]
+	)
 
 func colorForItemType(flags):
 	var int_flags = int(flags)
