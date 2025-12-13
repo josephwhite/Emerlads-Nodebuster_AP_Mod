@@ -21,6 +21,7 @@ var _location_name_to_id: Dictionary = {}  # Game only
 
 var _remote_version = {"major": 0, "minor": 0, "build": 0}
 
+const uuid_util = preload("res://mods-unpacked/Emerald-Archipelago/ap/vendor/godot-uuid/uuid.gd")
 
 # TODO: caching per MW/slot, reset between connections
 var _authenticated = false
@@ -427,7 +428,7 @@ func connectToRoom(ap_user, ap_pass):
 				"password": ap_pass,
 				"game": GAME_NAME,
 				"name": ap_user,
-				"uuid": GAME_NAME + ap_user,
+				"uuid": uuid_util.v4(),
 				"version": ap_version,
 				"items_handling": 0b111,  # always receive our items
 				"tags": [],
