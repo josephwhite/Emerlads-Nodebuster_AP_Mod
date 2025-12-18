@@ -152,6 +152,7 @@ func _init() -> void:
 	ModLoaderMod.add_hook(_load_milestone,"res://Scripts/Milestones/MilestoneEntry.gd","load_milestone")
 
 	ModLoaderMod.add_hook(_calculate_speed,"res://Scripts/Systems/CryptoMine.gd","calculate_speed")
+	ModLoaderMod.add_hook(_mine_is_maxed,"res://Scripts/Systems/CryptoMine.gd","is_maxed")
 	ModLoaderMod.add_hook(_mine_level_up,"res://Scripts/Systems/CryptoMine.gd","level_up")
 
 	ModLoaderMod.add_hook(_state_save,"res://Scripts/Autoloads/State.gd","save")
@@ -436,6 +437,12 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 
 
 # Crypto Mine Functions
+func _mine_is_maxed(chain: ModLoaderHookChain) -> void:
+	var ap_max_mine_level = 36
+	var ap_mine_is_maxed: bool = State.crypto_mine.mine_level >= ap_max_mine_level
+	return ap_mine_is_maxed
+
+
 func _calculate_speed(chain: ModLoaderHookChain) -> void:
 	match ap_mine_level:
 		0: State.crypto_mine.curr_speed = 5
