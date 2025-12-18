@@ -82,6 +82,7 @@ func _process(_delta):
 	_client.poll()
 
 
+
 # signals received from the client
 func _reset_state():
 	_client.should_process = false
@@ -103,9 +104,11 @@ func _closed(should_retry: bool, message: String):
 	connectToServer(_ap_server, _ap_user, _ap_pass)
 
 
+
 func _connected():
 	print("Connected!")
 	client_connected.emit("Connected !")
+
 
 
 func _on_data(packet: PackedByteArray):
@@ -509,8 +512,7 @@ func connectToRoom(ap_user, ap_pass):
 			}
 		]
 	)
-
-
+	
 func sendDeath(cause: String):
 	if not _death_link:
 		return

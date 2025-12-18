@@ -266,7 +266,6 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 		_set_upgrade_nodes_on_connection()
 		upgraded_nodes_on_connect = true
 
-
 func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) -> void: # When the client buys an upgrade and is connected. will increase the upgrade nodes level without giving the upgrade.
 	if is_client_connected == false:
 		chain.execute_next([upgrade_node])
