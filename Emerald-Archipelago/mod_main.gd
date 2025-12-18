@@ -23,7 +23,7 @@ var goal: int = 0
 
 
 const MOD_NAME = "Emerald-Archipelago"
-const MOD_VERSION = "0.1.1"
+const MOD_VERSION = "0.1.2"
 const LOG_NAME = MOD_NAME + "/mod_main"
 
 
