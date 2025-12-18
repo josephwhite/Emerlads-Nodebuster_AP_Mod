@@ -8,6 +8,7 @@ var isCRT: bool = false
 var isGlitched: bool = false
 var isRigged: bool = false
 
+# Traps waiting to activate
 var waiting_room: Array = []
 
 const traplink_item_mapping: Dictionary = {
@@ -23,6 +24,7 @@ const traplink_item_mapping: Dictionary = {
 }
 
 
+# Main entrypoint for calling traps from traplink and item recieve
 func _process_trap(trap_name: String) -> void:
     var mapped_trap = ""
     if (traplink_item_mapping.has(trap_name)):
@@ -42,6 +44,17 @@ func _process_trap(trap_name: String) -> void:
             return
 
 
+# Check waiting room for specified trap, and process it if found
+func _poll_waiting_room_for_trap(trap_name: String) -> void:
+    #for i in waiting_room:
+    #    modMain.apClient.sendChatMessage(str(i))
+    if waiting_room.has(trap_name):
+        var nextTrap = waiting_room.find(trap_name)
+        #modMain.apClient.sendChatMessage("%s found at index %s" % [trap_name, nextTrap])
+        waiting_room.remove_at(nextTrap)
+        _process_trap(trap_name)
+
+
 func _deploy_camera_shake_trap() -> void:  
     isCameraShaking = true
     var temp_screenshake_intensity = Globals.screenshake_intensity
@@ -53,6 +66,7 @@ func _deploy_camera_shake_trap() -> void:
 
 func _deploy_crt_trap() -> void:
     if(isCRT == true):
+        waiting_room.append("CRT Trap")
         return
     isCRT = true
     var temp_CRT_option = OptionData.get_option("crt_effect")
@@ -65,10 +79,11 @@ func _deploy_crt_trap() -> void:
     Refs.crt.material.set_shader_parameter("ghosting", 3.00)
     Refs.crt.material.set_shader_parameter("bloomRadius", 10.0)
     Refs.crt.material.set_shader_parameter("bloomIntensity", 17.0)
-    await MyTimer.wait(10.0)
+    await MyTimer.wait(30.0)
     _reset_crt_shader_params()
     OptionData.apply_option("crt_effect", temp_CRT_option)
     isCRT = false
+    _poll_waiting_room_for_trap("CRT Trap")
 
 
 func _reset_crt_shader_params() -> void:
@@ -92,6 +107,7 @@ func _reset_crt_shader_params() -> void:
 
 func _deploy_glitch_trap() -> void:
     if(isGlitched == true):
+        waiting_room.append("Glitch Trap")
         return
     isGlitched = true
     Refs.glitch.material.set_shader_parameter("shake_power", 0.03)
@@ -116,6 +132,7 @@ func _reset_glitch_shader_params() -> void:
 
 func _deploy_rigged_trap() -> void:
     if(isRigged == true):
+        waiting_room.append("Rigged Trap")
         return
     isRigged = true
     await MyTimer.wait(60.0)

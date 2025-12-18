@@ -479,6 +479,17 @@ func sendMessage(msg):
 	_client.send_text(payload)
 
 
+func sendChatMessage(msg):
+	sendMessage(
+		[
+			{
+				"cmd": "Say",
+				"text": msg
+			}
+		]
+	)
+
+
 func connectToRoom(ap_user, ap_pass):	
 	_ap_user = ap_user
 	_ap_pass = ap_pass
