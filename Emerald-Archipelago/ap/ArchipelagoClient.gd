@@ -4,7 +4,7 @@ var _ap_server: String = "" ## The server that the user is trying to connect wit
 var _ap_user: String = "" ## The players slot name they are trying to connect with.
 var _ap_pass: String = "" ## The password to connect to the room with.
 
-const my_version = "0.1.1" ## The version of the mod. (this is used in the ap world to make sure you are connecting with the right version.
+const my_version = "0.1.2" ## The version of the mod. (this is used in the ap world to make sure you are connecting with the right version.
 const ap_version = {"major": 0, "minor": 6, "build": 4, "class": "Version"} ## The version of the apworld/ap launcher.
 const GAME_NAME = "Nodebuster" ## Your game name.
 
