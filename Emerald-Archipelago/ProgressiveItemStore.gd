@@ -86,36 +86,70 @@ const data: Dictionary = {
 		"Infinity6":{"start":5,"count":1},
 		"Infinity7":{"start":6,"count":1},
 		"Infinity8":{"start":7,"count":1},
-		"Infinity9":{"start":8,"count":1},
+		"Infinity9":{"start":8,"count":1}
 	},
 	
-	"Progressive Milestone Reward": {
+	"Progressive Red Milestone Reward": {
 		"Reds500":{"start":0,"count":1},
-		"Blues10":{"start":1,"count":1},
-		"Reds2k":{"start" :2,"count":1},
-		"Blues100":{"start" :3,"count":1},
-		"Reds4k":{"start": 4,"count":1},
-		"Blues200":{"start": 5,"count":1},
-		"Reds6k":{"start": 6,"count":1},
-		"Blues300":{"start": 7,"count":1},
-		"Reds8k":{"start": 8,"count":1},
-		"Blues500":{"start": 9,"count":1},
-		"Reds10k":{"start": 10,"count":1},
-		"Blues800":{"start": 11,"count":1},
-		"Yellows5":{"start": 12,"count":1},
-		"Reds15k":{"start": 13,"count":1},
-		"Blues1.2k":{"start": 14,"count":1},
-		"Yellows10":{"start": 15,"count":1},
-		"Reds20k":{"start": 16,"count":1},
-		"Blues1.6k":{"start": 17,"count":1},
-		"Yellows15":{"start": 18,"count":1},
-		"Reds30k":{"start": 19,"count":1},
-		"Blues2k":{"start": 20,"count":1},
-		"Reds50k":{"start": 21,"count":1},
-		"Blues4k":{"start": 22,"count":1},
-		"Reds100k":{"start": 23,"count":1},
-		"Blues8k":{"start": 24,"count":1}
+		"Reds2k":{"start" :1,"count":1},
+		"Reds4k":{"start": 2,"count":1},
+		"Reds6k":{"start": 3,"count":1},
+		"Reds8k":{"start": 4,"count":1},
+		"Reds10k":{"start": 5,"count":1},
+		"Reds15k":{"start": 6,"count":1},
+		"Reds20k":{"start": 7,"count":1},
+		"Reds30k":{"start": 8,"count":1},
+		"Reds50k":{"start": 9,"count":1},
+		"Reds100k":{"start": 10,"count":1}
+	},
+
+	"Progressive Blue Milestone Reward": {
+		"Blues10":{"start":0,"count":1},
+		"Blues100":{"start" :1,"count":1},
+		"Blues200":{"start": 2,"count":1},
+		"Blues300":{"start": 3,"count":1},
+		"Blues500":{"start": 4,"count":1},
+		"Blues800":{"start": 5,"count":1},
+		"Blues1.2k":{"start": 6,"count":1},
+		"Blues1.6k":{"start": 7,"count":1},
+		"Blues2k":{"start": 8,"count":1},
+		"Blues4k":{"start": 9,"count":1},
+		"Blues8k":{"start": 10,"count":1}
+	},
+
+	"Progressive Yellow Milestone Reward": {
+		"Yellows5":{"start": 0,"count":1},
+		"Yellows10":{"start": 1,"count":1},
+		"Yellows15":{"start": 2,"count":1}
 	}
+
+	#"Progressive Milestone Reward": {
+	#	"Reds500":{"start":0,"count":1},
+	#	"Blues10":{"start":1,"count":1},
+	#	"Reds2k":{"start" :2,"count":1},
+	#	"Blues100":{"start" :3,"count":1},
+	#	"Reds4k":{"start": 4,"count":1},
+	#	"Blues200":{"start": 5,"count":1},
+	#	"Reds6k":{"start": 6,"count":1},
+	#	"Blues300":{"start": 7,"count":1},
+	#	"Reds8k":{"start": 8,"count":1},
+	#	"Blues500":{"start": 9,"count":1},
+	#	"Reds10k":{"start": 10,"count":1},
+	#	"Blues800":{"start": 11,"count":1},
+	#	"Yellows5":{"start": 12,"count":1},
+	#	"Reds15k":{"start": 13,"count":1},
+	#	"Blues1.2k":{"start": 14,"count":1},
+	#	"Yellows10":{"start": 15,"count":1},
+	#	"Reds20k":{"start": 16,"count":1},
+	#	"Blues1.6k":{"start": 17,"count":1},
+	#	"Yellows15":{"start": 18,"count":1},
+	#	"Reds30k":{"start": 19,"count":1},
+	#	"Blues2k":{"start": 20,"count":1},
+	#	"Reds50k":{"start": 21,"count":1},
+	#	"Blues4k":{"start": 22,"count":1},
+	#	"Reds100k":{"start": 23,"count":1},
+	#	"Blues8k":{"start": 24,"count":1}
+	#}
 }
 
 var progressive_items: Dictionary = {

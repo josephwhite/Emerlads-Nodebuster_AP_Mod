@@ -114,7 +114,7 @@ const item_descriptions: Dictionary = {
 	"Yellows5":"+1 Processor",
 	"Yellows10":"+1 Processor",
 	"Yellows15":"+1 Processor",
-	
+
 	"CryptoLevel":"Increases the CryptoMine Speed",
 	
 	"Extra Bits":"Have some extra Bits",
@@ -128,7 +128,10 @@ const item_descriptions: Dictionary = {
 	"Progressive SpawnRate":"Increases your next Spawn Rate Upgrade",
 	"Progressive Armor":"Increases your next Armor Upgrade",
 	"Progressive Infinity":"Increases your next Infinity Upgrade",
-	"Progressive Milestone Reward":"Gives the reward of your next milestone"
+	"Progressive Milestone Reward":"Gives the reward of your next milestone",
+	"Progressive Red Milestone Reward":"Gives the reward of your next milestone for red enemies",
+	"Progressive Blue Milestone Reward":"Gives the reward of your next milestone for blue enemies",
+	"Progressive Yellow Milestone Reward":"Gives the reward of your next milestone for yellow enemies",
 }
 
 # Battle Variables
