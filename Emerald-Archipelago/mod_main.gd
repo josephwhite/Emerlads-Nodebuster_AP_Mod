@@ -126,6 +126,8 @@ const item_descriptions: Dictionary = {
 	"Progressive Health":"Increases your next Health Upgrade",
 	"Progressive Regen":"Increases your next Regen Upgrade",
 	"Progressive SpawnRate":"Increases your next Spawn Rate Upgrade",
+	"Progressive Blue Spawn":"Increases your next Spawn Rate Upgrade for blue enemies",
+	"Progressive Yellow Spawn":"Increases your next Spawn Rate Upgrade for yellow enemies",
 	"Progressive Armor":"Increases your next Armor Upgrade",
 	"Progressive Infinity":"Increases your next Infinity Upgrade",
 	"Progressive Milestone Reward":"Gives the reward of your next milestone",

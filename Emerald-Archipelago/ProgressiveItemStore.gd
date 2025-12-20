@@ -52,12 +52,18 @@ const data: Dictionary = {
 	
 	"Progressive SpawnRate": {
 		"SpawnRate1":{"start":0,"count":15},
-		"NodeFinder1":{"start":15,"count":5},
-		"SpawnRate2":{"start":20,"count":1},
-		"SpawnRate3":{"start":21,"count":5},
-		"YellowSpawn1":{"start":26,"count":1},
-		"SpawnRate4":{"start":27,"count":5},
-		"YellowSpawn2":{"start":32,"count":1}
+		"SpawnRate2":{"start":15,"count":1},
+		"SpawnRate3":{"start":16,"count":5},
+		"SpawnRate4":{"start":21,"count":5},
+	},
+
+	"Progressive Blue Spawn": {
+		"NodeFinder1":{"start":0,"count":5},
+	},
+
+	"Progressive Yellow Spawn": {
+		"YellowSpawn1":{"start":0,"count":1},
+		"YellowSpawn2":{"start":1,"count":1}
 	},
 	
 	"Progressive Armor": {
