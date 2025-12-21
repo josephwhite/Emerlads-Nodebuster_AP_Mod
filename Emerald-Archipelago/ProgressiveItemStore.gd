@@ -54,11 +54,11 @@ const data: Dictionary = {
 		"SpawnRate1":{"start":0,"count":15},
 		"SpawnRate2":{"start":15,"count":1},
 		"SpawnRate3":{"start":16,"count":5},
-		"SpawnRate4":{"start":21,"count":5},
+		"SpawnRate4":{"start":21,"count":5}
 	},
 
 	"Progressive Blue Spawn": {
-		"NodeFinder1":{"start":0,"count":5},
+		"NodeFinder1":{"start":0,"count":5}
 	},
 
 	"Progressive Yellow Spawn": {
@@ -163,9 +163,14 @@ var progressive_items: Dictionary = {
 	"Progressive Health": 0,
 	"Progressive Regen": 0,
 	"Progressive SpawnRate": 0,
+	"Progressive Blue Spawn": 0,
+	"Progressive Yellow Spawn": 0,
 	"Progressive Armor": 0,
 	"Progressive Infinity": 0,
-	"Progressive Milestone Reward": 0
+	"Progressive Milestone Reward": 0,
+	"Progressive Red Milestone Reward": 0,
+	"Progressive Blue Milestone Reward": 0,
+	"Progressive Yellow Milestone Reward": 0
 }
 
 
