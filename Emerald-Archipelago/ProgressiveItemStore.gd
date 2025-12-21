@@ -15,13 +15,16 @@ const data: Dictionary = {
 		"Execute1":{"start":56,"count":6},
 		"Damage4":{"start":62,"count":3},
 		"BossDamage2":{"start":65,"count":10},
-		"CritDamage1":{"start":75,"count":10},
-		"Damage5":{"start":85,"count":5},
-		"Undamaged2":{"start":90,"count":4},
-		"Execute2":{"start":94,"count":4},
-		"RampingDamage1":{"start":98,"count":3},
-		"CritDamage2":{"start":101,"count":8},
-		"MaxHealthToDamage1":{"start":109,"count":1}
+		"Damage5":{"start":75,"count":5},
+		"Undamaged2":{"start":80,"count":4},
+		"Execute2":{"start":84,"count":4},
+		"RampingDamage1":{"start":88,"count":3},
+		"MaxHealthToDamage1":{"start":91,"count":1}
+	},
+
+	"Progressive Critical Damage": {
+		"CritDamage1":{"start":0,"count":10},
+		"CritDamage2":{"start":10,"count":8},
 	},
 	
 	"Progressive Health": {
@@ -160,6 +163,7 @@ const data: Dictionary = {
 
 var progressive_items: Dictionary = {
 	"Progressive Damage": 0,
+	"Progressive Critical Damage": 0,
 	"Progressive Health": 0,
 	"Progressive Regen": 0,
 	"Progressive SpawnRate": 0,
