@@ -163,7 +163,6 @@ var progressive_items: Dictionary = {
 	"Progressive Armor": 0,
 	"Progressive Boss Armor": 0,
 	"Progressive Infinity": 0,
-	#"Progressive Milestone Reward": 0,
 	"Progressive Red Milestone Reward": 0,
 	"Progressive Blue Milestone Reward": 0,
 	"Progressive Yellow Milestone Reward": 0
