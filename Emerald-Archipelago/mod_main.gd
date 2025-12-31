@@ -15,18 +15,19 @@ var local_name: String
 
 
 # APWorld Options
-var milestones_in_itempool: bool = false
-var crypto_levels_in_itempool: bool = false
-var bossdrops_setting: int = 0
 var goal: int = 0
 
 # Possible values: Full, Classification, Player, AP
 var vague_items: String = "Classification"
 
-
+# Unused APWorld Options
+# ---
+# var milestones_in_itempool: bool = false
+# var crypto_levels_in_itempool: bool = false
+# var bossdrops_setting: int = 0
 
 const MOD_NAME = "Emerald-Archipelago"
-const MOD_VERSION = "0.1.0"
+const MOD_VERSION = "0.1.2"
 const LOG_NAME = MOD_NAME + "/mod_main"
 
 
@@ -71,7 +72,7 @@ var new_milestone_data: Array[Milestone] = [ # Add an entry here for a new miles
 
 # Upgrade Variables
 var infinities: Array = []
-
+var upgraded_nodes_on_connect: bool = false
 
 # Check Variables
 var scouted_locations: Dictionary = {}
@@ -83,6 +84,7 @@ var hinted_locations: Dictionary = {}
 var stored_items: Dictionary = {}
 
 var collected_items: Dictionary = {}
+var collected_milestone_rewards: Dictionary = {}
 
 var stored_loc_item_pairs: Array = []
 
@@ -134,6 +136,8 @@ const item_descriptions: Dictionary = {
 # Battle Variables
 var killed_last_boss: bool = false
 
+# Etc Variables
+var was_killed_by_deathlink: bool = false
 
 func _init() -> void:
 	ModLoaderMod.add_hook(_ap_on_boss_defeated,"res://Scripts/Battle/BattleScene.gd","_on_boss_defeated")
@@ -254,6 +258,9 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			hint_make.global_position = child.global_position + Vector2(-2,-2)
 			hint_location_parsed.connect(hint_make._is_hint_location)
 			child.clicked.connect(hint_make._upgrade_node_clicked)
+	if upgraded_nodes_on_connect == false:
+		_set_upgrade_nodes_on_connection()
+		upgraded_nodes_on_connect = true
 
 
 
@@ -351,6 +358,35 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	propagate_notification(NOTIFICATION_VISIBILITY_CHANGED)
 
 
+# Set Upgrade Node levels on connection/reconnection
+func _set_upgrade_nodes_on_connection() -> void:
+	var cached_upgrade_locs = _get_collected_upgrade_locations_and_levels()
+	var tree_children: Array[Node] = upgradeTree.get_children()
+	for child: Node in tree_children:
+		if child is UpgradeNode:
+			if child.upgrade.id in cached_upgrade_locs:
+				child.upgrade.curr_level = cached_upgrade_locs[child.upgrade.id]
+				child.refresh_ui()
+				#child.spring()
+				upgradeTree.update_upgrade_visiblity(child)
+				for connected_node: UpgradeNode in child.connected_nodes:
+					upgradeTree.update_upgrade_visiblity(connected_node)
+
+
+# Aggregate max level of checked upgrade locations
+func _get_collected_upgrade_locations_and_levels() -> Dictionary:
+	var cached_upgrade_locs = {}
+	if is_client_connected == false:
+		return cached_upgrade_locs
+	for loc in apClient._checked_locations:
+		var loc_name = apClient._location_id_to_name[loc]
+		var loc_and_level = loc_name.rsplit("-", false, 2)
+		if UpgradeStore.search(loc_and_level[0]) != null:
+			if (loc_and_level[0] not in cached_upgrade_locs) or (cached_upgrade_locs[loc_and_level[0]] < loc_and_level[1]):
+				cached_upgrade_locs[loc_and_level[0]] = loc_and_level[1]
+	return cached_upgrade_locs
+
+
 # Milestone Page Functions
 func _on_milestone_claimed(chain: ModLoaderHookChain, entry:MilestoneEntry) -> void:
 	if is_client_connected == false:
@@ -428,9 +464,6 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 
 # Crypto Mine Functions
 func _calculate_speed(chain: ModLoaderHookChain) -> void:
-	if crypto_levels_in_itempool == false:
-		chain.execute_next()
-		return
 	match ap_mine_level:
 		0: State.crypto_mine.curr_speed = 5
 		1: State.crypto_mine.curr_speed = 10
@@ -474,40 +507,29 @@ func _calculate_speed(chain: ModLoaderHookChain) -> void:
 
 func _mine_level_up(chain: ModLoaderHookChain) -> void: # When client level ups CryptoMine if levels are in pool. send check.
 	chain.execute_next()
-	if is_client_connected == false or crypto_levels_in_itempool == false: return
+	if is_client_connected == false: return
 	_send_check("CryptoLevel-"+str(State.crypto_mine.mine_level))
 
 
 # AP Client Functions.
 func _connected_to_room() -> void:
 	is_client_connected = true
-
 	var slot_data = apClient._slot_data
 
 	goal = slot_data["goal"]
 
-	milestones_in_itempool = false
-	crypto_levels_in_itempool = false
-
-	bossdrops_setting = slot_data["bossdrops"]
-
+	# Add new milestones to milestone data.
 	# TODO: Currently this just adds every new milestone. not a problem but if I were to add more then im just adding unneeded data.
-	if bossdrops_setting != 0: # If boss drops are in the pool. Add new milestones to milestone data.
-		for new_milestone: Milestone in new_milestone_data:
-			if MilestoneStore._data_dict.has(new_milestone.id) == true: continue
-			MilestoneStore._data_dict[new_milestone.id] = new_milestone
+	for new_milestone: Milestone in new_milestone_data:
+		if MilestoneStore._data_dict.has(new_milestone.id) == true: continue
+		MilestoneStore._data_dict[new_milestone.id] = new_milestone
 
-	if apClient._slot_data["milestone"] == 1:
-		milestones_in_itempool = true
-
-		var milestone_names: PackedStringArray = [] # Scout for milestone info before the milestone entries get loaded. so even if you get milestones unlocked early they will still display proper rewards and names.
-		for milestone in MilestoneStore.data:
-			var milestone_id = milestone.id
-			milestone_names.append(milestone_id)
-		_send_location_scouts(milestone_names)
-	
-	if apClient._slot_data["crypto"] == 1:
-		crypto_levels_in_itempool = true
+	# Scout for milestone info before the milestone entries get loaded. so even if you get milestones unlocked early they will still display proper rewards and names.
+	var milestone_names: PackedStringArray = []
+	for milestone in MilestoneStore.data:
+		var milestone_id = milestone.id
+		milestone_names.append(milestone_id)
+	_send_location_scouts(milestone_names)
 
 
 func _apc_disconnected() -> void:
@@ -565,8 +587,10 @@ func _parse_hint(hint_location:String) -> void:
 
 
 func _death_found() -> void: # If server sends death link death. Kill client if in battle scene.
-	if battleScene == null: return
 	if apClient._death_link == false: return
+	if battleScene == null: return
+	was_killed_by_deathlink = true
+	Effects.floating_text("DEATHLINKED", battleScene.player_cursor.global_position, MyColors.RED)
 	battleScene.health_bar.die()
 
 # Send Information to Server
@@ -637,10 +661,21 @@ func _apply_item(itemName,itemID) -> void: # Figures out what the item is and th
 	# Check if Milestone Item
 	elif MilestoneStore.search(itemName) != null:
 		var milestone = MilestoneStore.search(itemName)
+		# Prevent regaining resources, now that resources should be properly saved.
+		if (collected_milestone_rewards.has(itemName) and collected_milestone_rewards[itemName]["count"] > collected_items[itemName]["count"]):
+			return
 		if new_milestone_data.has(milestone): # If milestone is in the modded milestone data then use custom gain milestone function and return.
 			_ap_gain_milestone(milestone)
+			if collected_milestone_rewards.has(itemName):
+				collected_milestone_rewards[itemName]["count"] += 1
+			else:
+				collected_milestone_rewards[itemName] = {"id":itemID,"count":1}
 			return
 		Refs.upgrade_processor.gain_milestone(milestone)
+		if collected_milestone_rewards.has(itemName):
+			collected_milestone_rewards[itemName]["count"] += 1
+		else:
+			collected_milestone_rewards[itemName] = {"id":itemID,"count":1}
 	
 	elif progressiveItemStore.search(itemName) != "":
 		_apply_item(progressiveItemStore.search(itemName),null)
@@ -730,10 +765,6 @@ func _ap_mine_level_up() -> void:
 # Prestige/Boss/Battle Functions
 func _ap_on_boss_defeated(chain: ModLoaderHookChain) -> void: # On boss defeat
 	var ap_max_prestige: int = 25
-	match bossdrops_setting:
-		0: # No boss drops in pool so do default.
-			chain.execute_next()
-			return
 	
 	if killed_last_boss: # If you killed the last boss indicated by the ap_max_prestige var then give normal drops.
 		chain.execute_next()
@@ -793,6 +824,8 @@ func _start_game(chain:ModLoaderHookChain) -> void:
 		Refs.popups.pop_curr()
 	if start_game:
 		Saver.create_new_save()
+		collected_milestone_rewards = {}
+		upgraded_nodes_on_connect = false
 		Saver.save_game()
 	Refs.main_scn.enter_shop()
 
@@ -808,8 +841,18 @@ func _state_save(chain: ModLoaderHookChain) -> Dictionary:
 	save["nums"] = State.nums.save()
 	save["crypto_mine"] = State.crypto_mine.save()
 	save["ap_info"] = {"address":apClient._ap_server,"slot_name":apClient._ap_user}
+	save["ap_collected_milestone_rewards"] = collected_milestone_rewards
+	save["ap_State_max_prestige"] = State.max_prestige
+	save["ap_State_lab_research_progress"] = State.lab_research_progress
+	save["ap_State_bits"] = State.bits
+	save["ap_State_nodes"] = State.nodes
+	save["ap_State_cores"] = State.cores
+	save["ap_State_sp"] = State.sp
+	save["ap_State_netcoin"] = State.netcoin
+	save["ap_State_processors"] = State.processors
+
 	save.erase("stats")
-	
+
 	return save
 
 
@@ -819,8 +862,17 @@ func _state_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
 	for property in prop_list:
 		if save.has(property.name):
 			set(property.name, save[property.name])
+	collected_milestone_rewards = save["ap_collected_milestone_rewards"]
 	State.nums = Numbers.new().load_save(save.nums)
 	State.crypto_mine = CryptoMine.new().load_save(save.crypto_mine)
+	State.max_prestige = save["ap_State_max_prestige"]
+	State.lab_research_progress = save["ap_State_lab_research_progress"]
+	State.bits = save["ap_State_bits"]
+	State.nodes = save["ap_State_nodes"]
+	State.cores = save["ap_State_cores"]
+	State.sp = save["ap_State_sp"]
+	State.netcoin = save["ap_State_netcoin"]
+	State.processors = save["ap_State_processors"]
 	if save.has("ap_info"):
 		local_server = save.ap_info.address
 		local_name = save.ap_info.slot_name
@@ -841,5 +893,20 @@ func _setup_battle_scene(battleScn: BattleScene) -> void: # When battle scene is
 
 func _health_zeroed_in_fight() -> void: # When you lost all health in battle scene. send death through death link if enabled.
 	if is_client_connected == false: return
-	if apClient._death_link == false: return
-	apClient.sendDeath("Session Terminated.")
+	if was_killed_by_deathlink == true:
+		was_killed_by_deathlink = false
+		return
+	if apClient._death_link == true:
+		var deathlink_message = _generate_deathlink_message()
+		apClient.sendDeath(deathlink_message)
+
+func _generate_deathlink_message() -> String:
+	var deathlink_message = ""
+	var possible_death_msgs = [
+			"%s's session was terminated." % [apClient._ap_user],
+			"%s 401'd." % [apClient._ap_user],
+			"%s was terminated at prestige %s." % [apClient._ap_user, State.curr_prestige],
+			"%s failed to nodebust." % [apClient._ap_user],
+	]
+	deathlink_message = possible_death_msgs.pick_random()
+	return deathlink_message

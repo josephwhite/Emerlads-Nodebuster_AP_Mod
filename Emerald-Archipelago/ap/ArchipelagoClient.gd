@@ -4,13 +4,13 @@ var _ap_server: String = "" ## The server that the user is trying to connect wit
 var _ap_user: String = "" ## The players slot name they are trying to connect with.
 var _ap_pass: String = "" ## The password to connect to the room with.
 
-const my_version = "0.1.0" ## The version of the mod. (this is used in the ap world to make sure you are connecting with the right version.
-const ap_version = {"major": 0, "minor": 6, "build": 1, "class": "Version"} ## The version of the apworld/ap launcher.
+const my_version = "0.1.2" ## The version of the mod. (this is used in the ap world to make sure you are connecting with the right version.
+const ap_version = {"major": 0, "minor": 6, "build": 4, "class": "Version"} ## The version of the apworld/ap launcher.
 const GAME_NAME = "Nodebuster" ## Your game name.
 
 var _client
 var _initiated_disconnect = false
-var _try_wss = false
+var _try_wss = true
 
 var _datapackages = {}
 var _pending_packages = []
@@ -21,6 +21,7 @@ var _location_name_to_id: Dictionary = {}  # Game only
 
 var _remote_version = {"major": 0, "minor": 0, "build": 0}
 
+const uuid_util = preload("res://mods-unpacked/Emerald-Archipelago/ap/vendor/godot-uuid/uuid.gd")
 
 # TODO: caching per MW/slot, reset between connections
 var _authenticated = false
@@ -34,6 +35,7 @@ var _slot_data = {} ## Information of the slot this client is connected to. Stuf
 var _received_indexes = []
 
 var _death_link: bool ## Wether death link is enabled or not.
+var last_sent_deathlink_time: float
 
 signal could_not_connect(errorMessage)
 signal connect_status(message)
@@ -78,7 +80,7 @@ func _process(_delta):
 func _reset_state():
 	_client.should_process = false
 	_authenticated = false
-	_try_wss = false
+	_try_wss = true
 
 func _closed(should_retry: bool, message: String):
 	if message != "":
@@ -251,23 +253,22 @@ func _on_data(packet: PackedByteArray):
 						"Sent [color=%s]%s[/color] to %s" % [item_color, item_name, player_name]
 					)
 		elif cmd == "Bounced":
-			if (
-				_death_link
-				and message.has("tags")
-				and message.has("data")
-				and message["tags"].has("DeathLink")
-			):
+			# Deathlink
+			if (_death_link and message.has("tags") and message.has("data") and message["tags"].has("DeathLink")):
 				if message["data"].has("source") and message["data"]["source"] == _ap_user:
-					return
-				
+					return # Skip deaths from self
+				var tstamp: float = message["data"].get("time", 0.0)
+				var deathlink_lastvsnow_sec = tstamp - last_sent_deathlink_time
+				if deathlink_lastvsnow_sec < 2:
+					return # Skip deaths too close to the previous death.
 				var first_sentence = "Received Death"
 				var second_sentence = ""
 				if message["data"].has("source"):
 					first_sentence = "Received Death from %s" % message["data"]["source"]
 				if message["data"].has("cause") and message["data"]["cause"] != "":
-					second_sentence = ". Reason: %s" % message["data"]["cause"]
+					#second_sentence = ". Reason: %s" % message["data"]["cause"]
+					first_sentence = message["data"]["cause"]
 				emit_signal("logInformations", first_sentence + second_sentence)
-
 				# Makes the dome explode !
 				emit_signal("onDeathFound")
 
@@ -294,12 +295,15 @@ func connectToServer(ap_server, ap_name, ap_pass):
 	_ap_user = ap_name
 	_ap_pass = ap_pass
 	
-	ap_server = "wss://" + ap_server
+	if _try_wss:
+		ap_server = "wss://" + ap_server
+	else:
+		ap_server = "ws://" + ap_server
 
 	var url = ""
 	if ap_server.begins_with("ws://") or ap_server.begins_with("wss://"):
 		url = ap_server
-		_try_wss = false
+		_try_wss = not _try_wss
 	elif _try_wss:
 		url = "wss://" + ap_server
 		_try_wss = false
@@ -425,7 +429,7 @@ func connectToRoom(ap_user, ap_pass):
 				"password": ap_pass,
 				"game": GAME_NAME,
 				"name": ap_user,
-				"uuid": GAME_NAME + ap_user,
+				"uuid": uuid_util.v4(),
 				"version": ap_version,
 				"items_handling": 0b111,  # always receive our items
 				"tags": [],
@@ -435,20 +439,23 @@ func connectToRoom(ap_user, ap_pass):
 	)
 	
 func sendDeath(cause: String):
-	if _death_link:
-		sendMessage(
-			[
-				{
-					"cmd": "Bounce",
-					"tags": ["DeathLink"],
-					"data": {
-						"time": Time.get_unix_time_from_system(),
-						"cause": cause,
-						"source": _ap_user
-					}
+	if not _death_link:
+		return
+	emit_signal("logInformations", "Sending Death")
+	last_sent_deathlink_time = Time.get_unix_time_from_system()
+	sendMessage(
+		[
+			{
+				"cmd": "Bounce",
+				"tags": ["DeathLink"],
+				"data": {
+					"time": last_sent_deathlink_time,
+					"cause": cause,
+					"source": _ap_user
 				}
-			]
-		)
+			}
+		]
+	)
 
 func colorForItemType(flags):
 	var int_flags = int(flags)
