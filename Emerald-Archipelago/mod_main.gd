@@ -361,14 +361,28 @@ func _set_upgrade_nodes_on_connection() -> void:
 # Aggregate max level of checked upgrade locations
 func _get_collected_upgrade_locations_and_levels() -> Dictionary:
 	var cached_upgrade_locs = {}
+	var location_names = []
 	if is_client_connected == false:
 		return cached_upgrade_locs
 	for loc in apClient._checked_locations:
 		var loc_name = apClient._location_id_to_name[loc]
 		var loc_and_level = loc_name.rsplit("-", false, 2)
 		if UpgradeStore.search(loc_and_level[0]) != null:
+			location_names.append(loc_name)
 			if (loc_and_level[0] not in cached_upgrade_locs) or (cached_upgrade_locs[loc_and_level[0]] < loc_and_level[1]):
 				cached_upgrade_locs[loc_and_level[0]] = loc_and_level[1]
+	# Validate we have a continuous max level, otherwise lower it to prevent softlocking out of checks
+	var continuous_max = 1
+	var continuous_failed = false
+	var supposed_max = 0
+	for upgrade in cached_upgrade_locs:
+		supposed_max = cached_upgrade_locs[upgrade]
+		while (continuous_max <= supposed_max) or continuous_failed == false:
+			continuous_failed = false
+			var continuous_location: String = str(upgrade) + "-" + str(continuous_max)
+			if continuous_location not in location_names:
+				cached_upgrade_locs[upgrade] = continuous_max
+				continuous_failed = true
 	return cached_upgrade_locs
 
 
