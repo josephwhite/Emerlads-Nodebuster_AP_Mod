@@ -19,9 +19,10 @@ Notes changes to both the apworld and client after v0.1.0
     * Progressive Red Milestone Reward
     * Progressive Blue Milestone Reward
     * Progressive Yellow Milestone Reward
+* Removed `Progressive Milestone Reward` in favor of Red/Blue/Yellow groups.
 * Set a bunch of item classification for upgrades from `useful` to `progressive`.
 * Added Progressive Items to their respective item groups.
-* Added `Life Steal` item group and grouped `Life Steal` items in Item List (client).
+* Added new item groups in Item List (client).
 
 ### Fixes
 
