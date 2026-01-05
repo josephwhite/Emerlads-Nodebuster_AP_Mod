@@ -218,7 +218,9 @@ func _node_removed(node:Node) -> void:
 		milestonePage = null
 
 
-# Upgrade Tree Functions
+#region Upgrade Tree Functions
+
+
 func _shop_scene_ready(chain:ModLoaderHookChain) -> void:
 	chain.execute_next()
 	
@@ -372,8 +374,11 @@ func _get_collected_upgrade_locations_and_levels() -> Dictionary:
 				cached_upgrade_locs[loc_and_level[0]] = loc_and_level[1]
 	return cached_upgrade_locs
 
+#endregion Upgrade Tree Functions
 
-# Milestone Page Functions
+#region Milestone Page Functions
+
+
 func _on_milestone_claimed(chain: ModLoaderHookChain, entry:MilestoneEntry) -> void:
 	if is_client_connected == false:
 		chain.execute_next([entry])
@@ -435,8 +440,11 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 				
 				return
 
+#endregion Milestone Page Functions
 
-# Crypto Mine Functions
+#region Crypto Mine Functions
+
+
 func _mine_is_maxed(chain: ModLoaderHookChain) -> void:
 	var ap_max_mine_level = 36
 	var ap_mine_is_maxed: bool = State.crypto_mine.mine_level >= ap_max_mine_level
@@ -485,13 +493,23 @@ func _calculate_speed(chain: ModLoaderHookChain) -> void:
 		_: State.crypto_mine.curr_speed  = 1280000
 
 
-func _mine_level_up(chain: ModLoaderHookChain) -> void: # When client level ups CryptoMine if levels are in pool. send check.
+## When client level ups CryptoMine, send check for Crypto Level.
+func _mine_level_up(chain: ModLoaderHookChain) -> void: 
 	chain.execute_next()
 	if is_client_connected == false: return
 	_send_check("CryptoLevel-"+str(State.crypto_mine.mine_level))
 
 
-# AP Client Functions.
+## When a Crypto Level is received, add mine level and recalculate speed
+func _ap_mine_level_up() -> void:
+	ap_mine_level += 1
+	State.crypto_mine.calculate_speed()
+
+#endregion Crypto Mine Functions
+
+#region AP Client Functions
+
+## Necessary setup on server connect
 func _connected_to_room() -> void:
 	is_client_connected = true
 	var slot_data = apClient._slot_data
@@ -504,7 +522,8 @@ func _connected_to_room() -> void:
 		if MilestoneStore._data_dict.has(new_milestone.id) == true: continue
 		MilestoneStore._data_dict[new_milestone.id] = new_milestone
 
-	# Scout for milestone info before the milestone entries get loaded. so even if you get milestones unlocked early they will still display proper rewards and names.
+	# Scout for milestone info before the milestone entries get loaded.
+	# Even if you get milestones unlocked early, they will still display proper rewards and names.
 	var milestone_names: PackedStringArray = []
 	for milestone in MilestoneStore.data:
 		var milestone_id = milestone.id
@@ -609,8 +628,11 @@ func _send_location_scouts(location_names: PackedStringArray = [], location_ids:
 	if scoutData.is_empty(): return
 	apClient.sendScout(scoutData)
 
+#endregion AP Client Functions
 
-# Item Functions
+#region Item Functions
+
+
 func _apply_item(itemName,itemID) -> void: # Figures out what the item is and then applys it to the client.
 	if collected_items.has(itemName):
 		collected_items[itemName]["count"] += 1
@@ -661,8 +683,11 @@ func _apply_item(itemName,itemID) -> void: # Figures out what the item is and th
 		progressiveItemStore.progressive_items[itemName] += 1
 
 
+#endregion Item Functions
 
-# Upgrade Functions
+#region Upgrade Functions
+
+
 func _ap_gain_upgrade(upgrade:Upgrade): # If an upgrade has different behavior when randomized go here
 	match upgrade.id: # TODO: Make sure that the button upgrades display button correctly
 		"Milestones":
@@ -709,6 +734,17 @@ func _ap_gain_upgrade(upgrade:Upgrade): # If an upgrade has different behavior w
 					Refs.curr_scn.show_lab_btn()
 
 
+## Load upgrades from save file
+func _upgrade_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
+	UpgradeStore.reset()
+	for upgrade_id: String in save:
+		var upgrade: Upgrade = UpgradeStore.search(upgrade_id)
+		if upgrade:
+			upgrade.curr_level = clampi(save[upgrade_id], 0, upgrade.get_max_level())
+
+
+#endregion Upgrade Functions
+
 
 # Milestone Functions
 func _ap_gain_milestone(milestone:Milestone) -> void:
@@ -721,25 +757,9 @@ func _ap_gain_milestone(milestone:Milestone) -> void:
 			State.nodes += 500
 
 
-# Cryptomine Functions
-func _ap_mine_level_up() -> void:
-	ap_mine_level += 1
-	State.crypto_mine.calculate_speed()
-
-
-# Prestige/Boss/Battle Functions
-
 
 
 # Location/Check Functions
-# Upgrade Functions
-
-
-# Milestone Functions
-
-
-# Cryptomine Functions
-
 
 # Prestige/Boss/Battle Functions
 func _ap_on_boss_defeated(chain: ModLoaderHookChain) -> void: # On boss defeat
@@ -856,13 +876,7 @@ func _state_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
 		local_server = save.ap_info.address
 		local_name = save.ap_info.slot_name
 
-# Upgrade Functions
-func _upgrade_load(chain: ModLoaderHookChain,save: Dictionary) -> void:
-	UpgradeStore.reset()
-	for upgrade_id: String in save:
-		var upgrade: Upgrade = UpgradeStore.search(upgrade_id)
-		if upgrade:
-			upgrade.curr_level = clampi(save[upgrade_id], 0, upgrade.get_max_level())
+
 
 
 # Battle Scene Functions
