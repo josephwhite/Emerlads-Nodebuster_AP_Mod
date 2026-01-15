@@ -7,6 +7,7 @@ var isCameraShaking: bool = false
 var isCRT: bool = false
 var isGlitched: bool = false
 var isRigged: bool = false
+var isStunLocked: bool = false
 
 # Traps waiting to activate
 var waiting_room: Array = []
@@ -17,10 +18,13 @@ const traplink_item_mapping: Dictionary = {
     "CRT Trap": "CRT Trap",
     "Glitch Trap": "Glitch Trap",
     "Rigged Trap": "Rigged Trap",
+    "Stunlock Trap": "Stunlock Trap",
     # Traps from other games
+    "Chaos Control Trap": "Stunlock Trap",
     # Custom Aliases
     "Casino Trap": "Rigged Trap",
     "The House Always Wins Trap": "Rigged Trap",
+    "Stun Lock Trap": "Stunlock Trap",
 }
 
 
@@ -40,6 +44,8 @@ func _process_trap(trap_name: String) -> void:
             _deploy_glitch_trap()
         "Rigged Trap":
             _deploy_rigged_trap()
+        "Stunlock Trap":
+            _deploy_stunlock_trap()
         _:
             return
 
@@ -135,5 +141,16 @@ func _deploy_rigged_trap() -> void:
         waiting_room.append("Rigged Trap")
         return
     isRigged = true
+    # Do stuff
     await MyTimer.wait(60.0)
     isRigged = false
+
+
+func _deploy_stunlock_trap() -> void:
+    if(isStunLocked == true):
+        waiting_room.append("Rigged Trap")
+        return
+    isStunLocked = true
+    # Do stuff
+    await MyTimer.wait(60.0)
+    isStunLocked = false
