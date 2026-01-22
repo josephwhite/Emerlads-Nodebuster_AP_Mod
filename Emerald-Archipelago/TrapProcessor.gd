@@ -7,10 +7,12 @@ var isCameraShaking: bool = false
 var isCRT: bool = false
 var isGlitched: bool = false
 var isRigged: bool = false
-var isStunLocked: bool = false
+var isStunlocked: bool = false
 
 # Traps waiting to activate
 var waiting_room: Array = []
+
+var last_mouse_pos: Vector2 = Vector2(0, 0)
 
 const traplink_item_mapping: Dictionary = {
     # Nodebuster Traps
@@ -59,6 +61,7 @@ func _poll_waiting_room_for_trap(trap_name: String) -> void:
         #modMain.apClient.sendChatMessage("%s found at index %s" % [trap_name, nextTrap])
         waiting_room.remove_at(nextTrap)
         _process_trap(trap_name)
+    return
 
 
 func _deploy_camera_shake_trap() -> void:  
@@ -126,6 +129,7 @@ func _deploy_glitch_trap() -> void:
     _reset_glitch_shader_params()
     Refs.glitch.hide()
     isGlitched = false
+    _poll_waiting_room_for_trap("Glitch Trap")
 
 
 func _reset_glitch_shader_params() -> void:
@@ -141,16 +145,34 @@ func _deploy_rigged_trap() -> void:
         waiting_room.append("Rigged Trap")
         return
     isRigged = true
-    # Do stuff
+    # TODO: Get snapshot of state
+    # TODO: Set all chance stats to 0
     await MyTimer.wait(60.0)
+    # TODO: Restore state to snapshot
     isRigged = false
+    _poll_waiting_room_for_trap("Rigged Trap")
 
 
 func _deploy_stunlock_trap() -> void:
-    if(isStunLocked == true):
-        waiting_room.append("Rigged Trap")
+    if(isStunlocked == true):
+        waiting_room.append("Stunlock Trap")
         return
-    isStunLocked = true
-    # Do stuff
-    await MyTimer.wait(60.0)
-    isStunLocked = false
+    isStunlocked = true
+    last_mouse_pos = Refs.main_scn.get_viewport().get_mouse_position()
+    # TODO: Warp mouse to lock_pose on every frame (or every 0.0001 seconds to replicate staying place)
+    # Idea: Connect frame data to warp (not working)
+    # Some where between 0.01670-0.016725 seonds
+    #var _t_stunlock = MyTimer.create_repeating(0.016725, 1, 250)
+    #_t_stunlock.repeated.connect(_warp_mouse_to_last_pos)
+    var temp_mouse_mode = Input.get_mouse_mode()
+    Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+    Effects.floating_text("STUNLOCK", last_mouse_pos, MyColors.YELLOW)
+    await MyTimer.wait(5.0)
+    # Remove lock for mouse
+    # Idea: Connect frame data to warp (not working)
+    Input.set_mouse_mode(temp_mouse_mode)
+    isStunlocked = false
+    _poll_waiting_room_for_trap("Stunlock Trap")
+
+func _warp_mouse_to_last_pos() -> void:
+    Refs.main_scn.get_viewport().warp_mouse(last_mouse_pos)
