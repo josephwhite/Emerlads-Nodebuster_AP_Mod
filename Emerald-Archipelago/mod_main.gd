@@ -820,8 +820,6 @@ func _start_game(chain:ModLoaderHookChain) -> void:
 		#Saver.save_game()
 		_save_game()
 	Refs.main_scn.enter_shop()
-	#var user_path = ProjectSettings.globalize_path("user://")
-	#apClient.logInformations.emit(user_path)
 
 
 # Saving and Loading Functions

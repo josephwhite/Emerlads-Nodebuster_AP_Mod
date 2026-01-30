@@ -419,6 +419,8 @@ func sendMessage(msg):
 	var payload = json.stringify(msg)
 	_client.send_text(payload)
 
+# Load player's UUID from local file
+# If a UUID file does not exist, create one with a new UUID
 func _get_user_uuid():
 	var user_uuid_path = "user://uuid_archipelago.dat"
 	var file = FileAccess.open(user_uuid_path, FileAccess.READ)

@@ -2,6 +2,16 @@
 
 Notes changes to both the apworld and client after v0.1.0
 
+## v0.1.3 - 2026-xx-xx
+
+### Changed
+* Added save file functionality.
+    * Connecting to a server will check for save files in `user://` with the same seed and player.
+    * Saving will occur more frequently.
+
+### Fixes
+* Save created UUID to file in `user://` and load UUID from said file, ensuring UUIDs are reused for future server locking feature.
+
 ## v0.1.2 - 2025-12-31
 
 ### Changed
