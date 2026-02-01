@@ -375,14 +375,17 @@ func _get_collected_upgrade_locations_and_levels() -> Dictionary:
 	var continuous_max = 1
 	var continuous_failed = false
 	var supposed_max = 0
+	var continuous_location: String = ""
 	for upgrade in cached_upgrade_locs:
 		supposed_max = cached_upgrade_locs[upgrade]
+		continuous_max = 1
+		continuous_failed = false
 		while (continuous_max <= supposed_max) or continuous_failed == false:
-			continuous_failed = false
-			var continuous_location: String = str(upgrade) + "-" + str(continuous_max)
+			continuous_location = str(upgrade) + "-" + str(continuous_max)
 			if continuous_location not in location_names:
-				cached_upgrade_locs[upgrade] = continuous_max
+				cached_upgrade_locs[upgrade] = continuous_max - 1
 				continuous_failed = true
+			continuous_max = continuous_max + 1
 	return cached_upgrade_locs
 
 
