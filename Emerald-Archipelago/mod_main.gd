@@ -114,7 +114,7 @@ const item_descriptions: Dictionary = {
 	"Yellows5":"+1 Processor",
 	"Yellows10":"+1 Processor",
 	"Yellows15":"+1 Processor",
-	
+
 	"CryptoLevel":"Increases the CryptoMine Speed",
 	
 	"Extra Bits":"Have some extra Bits",
@@ -123,12 +123,23 @@ const item_descriptions: Dictionary = {
 	"Boss Drop":"+1 Core",
 	
 	"Progressive Damage":"Increases your next Damage Upgrade",
+	"Progressive Additional Damage":"Increases your next Addl Damage Upgrade",
+	"Progressive Damage Per Second":"Increases your next DPS Upgrade",
+	"Progressive Critical Damage":"Increases your next Boss Damage Upgrade",
+	"Progressive Boss Damage":"Increases your next Boss Damage Upgrade",
 	"Progressive Health":"Increases your next Health Upgrade",
 	"Progressive Regen":"Increases your next Regen Upgrade",
+	"Progressive Lifesteal":"Increases your next Lifesteal Upgrade",
 	"Progressive SpawnRate":"Increases your next Spawn Rate Upgrade",
+	"Progressive Blue Spawn":"Increases your next Spawn Rate Upgrade for blue enemies",
+	"Progressive Yellow Spawn":"Increases your next Spawn Rate Upgrade for yellow enemies",
 	"Progressive Armor":"Increases your next Armor Upgrade",
+	"Progressive Boss Armor":"Increases your next Boss Armor Upgrade",
 	"Progressive Infinity":"Increases your next Infinity Upgrade",
-	"Progressive Milestone Reward":"Gives the reward of your next milestone"
+	"Progressive Milestone Reward":"Gives the reward of your next milestone",
+	"Progressive Red Milestone Reward":"Gives the reward of your next milestone for red enemies",
+	"Progressive Blue Milestone Reward":"Gives the reward of your next milestone for blue enemies",
+	"Progressive Yellow Milestone Reward":"Gives the reward of your next milestone for yellow enemies",
 }
 
 # Battle Variables
