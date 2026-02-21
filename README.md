@@ -19,7 +19,6 @@ Locations (checks) are the upgrade nodes in the upgrade tree, Milestone rewards,
 * [Nodebuster (Steam)](https://store.steampowered.com/app/3107330)
     * Windows
 * [Godot 4.x Mod Loader](https://github.com/GodotModding/godot-mod-loader/releases) v7.0.1 or later
-    * We use this version for the [patch](https://github.com/GodotModding/godot-mod-loader/pull/533) that provides compatibility to Nodebuster.
 * [Nodebuster Archipelago Mod](https://github.com/josephwhite/Emerlads-Nodebuster_AP_Mod/releases)
 
 ## Optional Software
