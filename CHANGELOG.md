@@ -9,9 +9,10 @@ Notes changes to both the apworld and client after v0.1.0
 * Added save file functionality.
     * Connecting to a server will check for save files in `user://` with the same seed and player.
     * Saving will occur more frequently.
-* Added additional rules for node connections
+* Added additional rules for node connections.
 * Added additional rules to seperate easy milestones from milestones that logically need to be grinded.
 * Set item classification of `Progressive SpawnRate` from `useful` to `progressive`.
+* Disabled auto-unlocking upgrade locations, as save files properly save per slot.
 
 ### Fixes
 

@@ -271,7 +271,7 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			hint_location_parsed.connect(hint_make._is_hint_location)
 			child.clicked.connect(hint_make._upgrade_node_clicked)
 	if upgraded_nodes_on_connect == false:
-		_set_upgrade_nodes_on_connection()
+		#_set_upgrade_nodes_on_connection()
 		upgraded_nodes_on_connect = true
 	_save_game()
 
