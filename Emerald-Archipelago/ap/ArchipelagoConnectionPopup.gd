@@ -37,7 +37,8 @@ func _ready():
 	if connectionButton.pressed.is_connected(_on_connection_button_pressed) == false: connectionButton.pressed.connect(_on_connection_button_pressed)
 	_ap_client = mod_node.get_child(0)
 	_ap_client.packetConnected.connect(_connected_to_room)
-	Saver.load_game()
+	#Saver.load_game()
+	mod_node._load_game()
 	url.text = archipelagoMain.local_server
 	slotname.text = archipelagoMain.local_name
 
