@@ -2,7 +2,7 @@
 
 Notes changes to both the apworld and client after v0.1.0
 
-## v0.1.3 - 2026-xx-xx
+## v0.1.3 - 2026-02-26
 
 ### Changed
 
