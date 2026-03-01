@@ -116,7 +116,7 @@ const item_descriptions: Dictionary = {
 	"Yellows5":"+1 Processor",
 	"Yellows10":"+1 Processor",
 	"Yellows15":"+1 Processor",
-	
+
 	"CryptoLevel":"Increases the CryptoMine Speed",
 	
 	"Extra Bits":"Have some extra Bits",
@@ -125,12 +125,23 @@ const item_descriptions: Dictionary = {
 	"Boss Drop":"+1 Core",
 	
 	"Progressive Damage":"Increases your next Damage Upgrade",
+	"Progressive Additional Damage":"Increases your next Addl Damage Upgrade",
+	"Progressive Damage Per Second":"Increases your next DPS Upgrade",
+	"Progressive Critical Damage":"Increases your next Boss Damage Upgrade",
+	"Progressive Boss Damage":"Increases your next Boss Damage Upgrade",
 	"Progressive Health":"Increases your next Health Upgrade",
 	"Progressive Regen":"Increases your next Regen Upgrade",
+	"Progressive Lifesteal":"Increases your next Lifesteal Upgrade",
 	"Progressive SpawnRate":"Increases your next Spawn Rate Upgrade",
+	"Progressive Blue Spawn":"Increases your next Spawn Rate Upgrade for blue enemies",
+	"Progressive Yellow Spawn":"Increases your next Spawn Rate Upgrade for yellow enemies",
 	"Progressive Armor":"Increases your next Armor Upgrade",
+	"Progressive Boss Armor":"Increases your next Boss Armor Upgrade",
 	"Progressive Infinity":"Increases your next Infinity Upgrade",
-	"Progressive Milestone Reward":"Gives the reward of your next milestone"
+	"Progressive Milestone Reward":"Gives the reward of your next milestone",
+	"Progressive Red Milestone Reward":"Gives the reward of your next milestone for red enemies",
+	"Progressive Blue Milestone Reward":"Gives the reward of your next milestone for blue enemies",
+	"Progressive Yellow Milestone Reward":"Gives the reward of your next milestone for yellow enemies",
 }
 
 # Battle Variables
@@ -159,6 +170,9 @@ func _init() -> void:
 	ModLoaderMod.add_hook(_state_save,"res://Scripts/Autoloads/State.gd","save")
 	ModLoaderMod.add_hook(_state_load,"res://Scripts/Autoloads/State.gd","load_save")
 	ModLoaderMod.add_hook(_upgrade_load,"res://Scripts/Autoloads/Stores/UpgradeStore.gd","load_save")
+	ModLoaderMod.add_hook(_load_game,"res://Scripts/Autoloads/Saver.gd","load_game")
+	ModLoaderMod.add_hook(_save_game,"res://Scripts/Autoloads/Saver.gd","save_game")
+	ModLoaderMod.add_hook(_has_save,"res://Scripts/Autoloads/Saver.gd","has_save")
 
 	ModLoaderMod.add_hook(_start_game,"res://Scripts/MainScene.gd","_on_new_game")
 
@@ -259,8 +273,9 @@ func _upgrade_tree_ready(chain: ModLoaderHookChain) -> void:
 			hint_location_parsed.connect(hint_make._is_hint_location)
 			child.clicked.connect(hint_make._upgrade_node_clicked)
 	if upgraded_nodes_on_connect == false:
-		_set_upgrade_nodes_on_connection()
+		#_set_upgrade_nodes_on_connection()
 		upgraded_nodes_on_connect = true
+	_save_game()
 
 
 
@@ -287,6 +302,7 @@ func _upgrade_node_bought(chain:ModLoaderHookChain, upgrade_node:UpgradeNode) ->
 	upgradeTree.update_upgrade_visiblity(upgrade_node)
 	for connected_node: UpgradeNode in upgrade_node.connected_nodes:
 		upgradeTree.update_upgrade_visiblity(connected_node)
+	_save_game()
 
 
 func _check_location_scout(chain: ModLoaderHookChain, upgrade_node: UpgradeNode) -> void: # Hooks Upgrade Tree Update Upgrade Visibilty Function.
@@ -376,14 +392,31 @@ func _set_upgrade_nodes_on_connection() -> void:
 # Aggregate max level of checked upgrade locations
 func _get_collected_upgrade_locations_and_levels() -> Dictionary:
 	var cached_upgrade_locs = {}
+	var location_names = []
 	if is_client_connected == false:
 		return cached_upgrade_locs
 	for loc in apClient._checked_locations:
 		var loc_name = apClient._location_id_to_name[loc]
 		var loc_and_level = loc_name.rsplit("-", false, 2)
 		if UpgradeStore.search(loc_and_level[0]) != null:
+			location_names.append(loc_name)
 			if (loc_and_level[0] not in cached_upgrade_locs) or (cached_upgrade_locs[loc_and_level[0]] < loc_and_level[1]):
 				cached_upgrade_locs[loc_and_level[0]] = loc_and_level[1]
+	# Validate we have a continuous max level, otherwise lower it to prevent softlocking out of checks
+	var continuous_max = 1
+	var continuous_failed = false
+	var supposed_max = 0
+	var continuous_location: String = ""
+	for upgrade in cached_upgrade_locs:
+		supposed_max = cached_upgrade_locs[upgrade]
+		continuous_max = 1
+		continuous_failed = false
+		while (continuous_max <= supposed_max) or continuous_failed == false:
+			continuous_location = str(upgrade) + "-" + str(continuous_max)
+			if continuous_location not in location_names:
+				cached_upgrade_locs[upgrade] = continuous_max - 1
+				continuous_failed = true
+			continuous_max = continuous_max + 1
 	return cached_upgrade_locs
 
 
@@ -530,6 +563,7 @@ func _connected_to_room() -> void:
 		var milestone_id = milestone.id
 		milestone_names.append(milestone_id)
 	_send_location_scouts(milestone_names)
+	_load_game()
 
 
 func _apc_disconnected() -> void:
@@ -813,7 +847,9 @@ func _main_menu_ready(main_menu:Node) -> void: # Spawn Archipelago Connect Butto
 
 func _start_game(chain:ModLoaderHookChain) -> void:
 	var start_game: bool = true
-	if Saver.has_save() and local_server == apClient._ap_server:
+	#if Saver.has_save() and local_server == apClient._ap_server:
+	if _has_save() and local_server == apClient._ap_server:
+		_load_game()
 		print("Has Save and last local server save is equal to this one")
 		var confirmation: ConfirmationPopup = Refs._confirmation.instantiate()
 		Refs.popups.add_popup(confirmation)
@@ -826,11 +862,55 @@ func _start_game(chain:ModLoaderHookChain) -> void:
 		Saver.create_new_save()
 		collected_milestone_rewards = {}
 		upgraded_nodes_on_connect = false
-		Saver.save_game()
+		#Saver.save_game()
+		_save_game()
 	Refs.main_scn.enter_shop()
 
 
 # Saving and Loading Functions
+
+func _has_save() -> bool:
+	var slot_savefile_path = "user://save.dat"
+	if is_client_connected == true:
+		var _ap_userhex = apClient._ap_user.to_utf8_buffer().hex_encode()
+		slot_savefile_path =  "user://save_archipelago_%s_%s.dat" % [apClient._seed, _ap_userhex]
+	return FileAccess.file_exists(slot_savefile_path)
+
+
+func _save_game() -> void:
+	var slot_savefile_path = "user://save.dat"
+	var slot_savefile_temp_path = "user://save_temp.dat"
+	if is_client_connected == true:
+		var _ap_userhex = apClient._ap_user.to_utf8_buffer().hex_encode()
+		slot_savefile_path =  "user://save_archipelago_%s_%s.dat" % [apClient._seed, _ap_userhex]
+		slot_savefile_temp_path = "user://save_archipelago_%s_%s_temp.dat" % [apClient._seed, _ap_userhex]
+	var save: Dictionary = {
+		"upgrades": UpgradeStore.save(),
+		"milestones": MilestoneStore.save(),
+		"state": State.save(),
+	}
+	var save_str: String = var_to_str(save)
+	var file = FileAccess.open(slot_savefile_temp_path, FileAccess.WRITE)
+	if file:
+		file.store_string(save_str)
+		file.close()
+		DirAccess.copy_absolute(slot_savefile_temp_path, slot_savefile_path)
+		DirAccess.remove_absolute(slot_savefile_temp_path)
+
+
+func _load_game() -> void:
+	var slot_savefile_path = "user://save.dat"
+	if is_client_connected == true:
+		var _ap_userhex = apClient._ap_user.to_utf8_buffer().hex_encode()
+		slot_savefile_path =  "user://save_archipelago_%s_%s.dat" % [apClient._seed, _ap_userhex]
+	var file = FileAccess.open(slot_savefile_path, FileAccess.READ)
+	if file:
+		var save_str: String = file.get_as_text()
+		var save: Dictionary = str_to_var(save_str)
+		State.load_save(save.state)
+		UpgradeStore.load_save(save.upgrades)
+		MilestoneStore.load_save(save.milestones)
+
 
 # State Functions
 func _state_save(chain: ModLoaderHookChain) -> Dictionary:

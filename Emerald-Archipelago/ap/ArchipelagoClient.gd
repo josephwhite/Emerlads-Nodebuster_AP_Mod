@@ -4,7 +4,7 @@ var _ap_server: String = "" ## The server that the user is trying to connect wit
 var _ap_user: String = "" ## The players slot name they are trying to connect with.
 var _ap_pass: String = "" ## The password to connect to the room with.
 
-const my_version = "0.1.2" ## The version of the mod. (this is used in the ap world to make sure you are connecting with the right version.
+const my_version = "0.1.3" ## The version of the mod. (this is used in the ap world to make sure you are connecting with the right version.
 const ap_version = {"major": 0, "minor": 6, "build": 4, "class": "Version"} ## The version of the apworld/ap launcher.
 const GAME_NAME = "Nodebuster" ## Your game name.
 
@@ -22,6 +22,7 @@ var _location_name_to_id: Dictionary = {}  # Game only
 var _remote_version = {"major": 0, "minor": 0, "build": 0}
 
 const uuid_util = preload("res://mods-unpacked/Emerald-Archipelago/ap/vendor/godot-uuid/uuid.gd")
+var _user_uuid: String = ""
 
 # TODO: caching per MW/slot, reset between connections
 var _authenticated = false
@@ -70,6 +71,7 @@ func _newClient():
 	_client.disconnected_without_connection.connect(self._closed)
 	_client.connected.connect(self._connected)
 	#GameWorld.archipelago.client = self
+	_get_user_uuid()
 	print("Ready client")
 
 # mandatory to receive/emit
@@ -418,6 +420,27 @@ func sendMessage(msg):
 	var payload = json.stringify(msg)
 	_client.send_text(payload)
 
+# Load player's UUID from local file
+# If a UUID file does not exist, create one with a new UUID
+func _get_user_uuid():
+	var user_uuid_path = "user://uuid_archipelago.dat"
+	var file = FileAccess.open(user_uuid_path, FileAccess.READ)
+	if file:
+		var uuid_save_str: String = file.get_as_text()
+		var uuid_save: Dictionary = str_to_var(uuid_save_str)
+		_user_uuid = uuid_save["uuid"]
+	else:
+		_user_uuid = uuid_util.v4()
+		var _user_uuid_dict = {
+			"uuid": _user_uuid
+		}
+		var _user_uuid_str: String = var_to_str(_user_uuid_dict)
+		var new_file = FileAccess.open(user_uuid_path, FileAccess.WRITE)
+		if new_file:
+			new_file.store_string(_user_uuid_str)
+			new_file.close()
+
+
 func connectToRoom(ap_user, ap_pass):	
 	_ap_user = ap_user
 	_ap_pass = ap_pass
@@ -429,7 +452,7 @@ func connectToRoom(ap_user, ap_pass):
 				"password": ap_pass,
 				"game": GAME_NAME,
 				"name": ap_user,
-				"uuid": uuid_util.v4(),
+				"uuid": _user_uuid,
 				"version": ap_version,
 				"items_handling": 0b111,  # always receive our items
 				"tags": [],
