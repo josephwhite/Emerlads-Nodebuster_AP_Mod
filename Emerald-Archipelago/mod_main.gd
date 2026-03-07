@@ -17,8 +17,12 @@ var local_name: String
 # APWorld Options
 var goal: int = 0
 
-# Possible values: Full, Classification, Player, AP
-var vague_items: String = "Classification"
+# Possible values:
+# 	Full/Off = 0
+# 	Classification = 1
+# 	Player = 2
+# 	AP = 3
+var vague_itemname_hints: int = 0
 
 # Unused APWorld Options
 # ---
@@ -342,10 +346,12 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 		player_name += " "
 		
 		var item = UpgradeStore.search(item_name)
-		if item != null:
+		if (item != null) and (vague_itemname_hints == 0):
 			item_description = item_description.format({"Item_Description":item.description})
-		elif item_descriptions.has(item_name):
+		elif item_descriptions.has(item_name) and (vague_itemname_hints == 0):
 			item_description = item_description.format({"Item_Description":item_descriptions[item_name]})
+		elif vague_itemname_hints != 0:
+			item_description = item_description.format({"Item_Description":"An Archipelago Item"})
 	else:
 		player_name = player_name + "'s "
 		item_description = item_description.format({"Item_Description":"An Archipelago Item"})
@@ -353,14 +359,18 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	item_description = item_description.format({"Item_Name": ap_item_name})
 
 	var item_to_give_name = ""
-	# Possible values: Full, Classification, Player, AP
-	if vague_items == "Full":
+	# Determine item name in descriptions from Vague Hints option
+	if vague_itemname_hints == 0:
+		# Off/Full: Player Name and Item Name
 		item_to_give_name = player_name + item_name
-	elif vague_items == "Classification":
+	elif vague_itemname_hints == 1:
+		# Class: Item Classification (Progressive/Filler/Trap/etc)
 		item_to_give_name = "An Archipelago " + item_classification + " Item"
-	elif vague_items == "Player":
+	elif vague_itemname_hints == 2:
+		# Player: Player name
 		item_to_give_name = player_name + "Archipelago Item"
-	elif vague_items == "AP":
+	elif vague_itemname_hints == 3:
+		# AP: "An Archipelago Item"
 		item_to_give_name = "An Archipelago Item"
 	else:
 		item_to_give_name = "An Archipelago Item"
@@ -461,14 +471,18 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 	item_description = item_description.format({"Location_Name": ap_location_name})
 
 	var item_to_give_name = ""
-	# Possible values: Full, Classification, Player, AP
-	if vague_items == "Full":
+	# Determine item name in descriptions from Vague Hints option
+	if vague_itemname_hints == 0:
+		# Off/Full: Player Name and Item Name
 		item_to_give_name = player_name + item_name
-	elif vague_items == "Classification":
+	elif vague_itemname_hints == 1:
+		# Class: Item Classification (Progressive/Filler/Trap/etc)
 		item_to_give_name = "An Archipelago " + item_classification + " Item"
-	elif vague_items == "Player":
+	elif vague_itemname_hints == 2:
+		# Player: Player name
 		item_to_give_name = player_name + "Archipelago Item"
-	elif vague_items == "AP":
+	elif vague_itemname_hints == 3:
+		# AP: "An Archipelago Item"
 		item_to_give_name = "An Archipelago Item"
 	else:
 		item_to_give_name = "An Archipelago Item"
@@ -550,6 +564,7 @@ func _connected_to_room() -> void:
 	var slot_data = apClient._slot_data
 
 	goal = slot_data["goal"]
+	vague_itemname_hints = slot_data["vague_hints"]
 
 	# Add new milestones to milestone data.
 	# TODO: Currently this just adds every new milestone. not a problem but if I were to add more then im just adding unneeded data.
