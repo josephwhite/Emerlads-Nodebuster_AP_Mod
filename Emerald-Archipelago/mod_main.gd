@@ -17,12 +17,18 @@ var local_name: String
 # APWorld Options
 var goal: int = 0
 
+# Possible values:
+# 	Full/Off = 0
+# 	Classification = 1
+# 	Player = 2
+# 	AP = 3
+var vague_itemname_hints: int = 0
+
 # Unused APWorld Options
 # ---
 # var milestones_in_itempool: bool = false
 # var crypto_levels_in_itempool: bool = false
 # var bossdrops_setting: int = 0
-
 
 const MOD_NAME = "Emerald-Archipelago"
 const MOD_VERSION = "0.1.3"
@@ -331,6 +337,7 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 	
 	var player_name: String = scouted_location["playerName"]
 	var item_name: String = scouted_location["itemName"]
+	var item_classification: String = scouted_location["itemClassification"]
 
 	var item_description: String = "{Item_Description}\n{Item_Name}"
 
@@ -339,17 +346,35 @@ func _ap_description_refresh_ui(chain: ModLoaderHookChain) -> void: # When descr
 		player_name += " "
 		
 		var item = UpgradeStore.search(item_name)
-		if item != null:
+		if (item != null) and (vague_itemname_hints == 0):
 			item_description = item_description.format({"Item_Description":item.description})
-		elif item_descriptions.has(item_name):
+		elif item_descriptions.has(item_name) and (vague_itemname_hints == 0):
 			item_description = item_description.format({"Item_Description":item_descriptions[item_name]})
+		elif vague_itemname_hints != 0:
+			item_description = item_description.format({"Item_Description":"An Archipelago Item"})
 	else:
 		player_name = player_name + "'s "
 		item_description = item_description.format({"Item_Description":"An Archipelago Item"})
 	
 	item_description = item_description.format({"Item_Name": ap_item_name})
 
-	var item_to_give_name = player_name + item_name
+	var item_to_give_name = ""
+	# Determine item name in descriptions from Vague Hints option
+	if vague_itemname_hints == 0:
+		# Off/Full: Player Name and Item Name
+		item_to_give_name = player_name + item_name
+	elif vague_itemname_hints == 1:
+		# Class: Item Classification (Progressive/Filler/Trap/etc)
+		item_to_give_name = "An Archipelago " + item_classification + " Item"
+	elif vague_itemname_hints == 2:
+		# Player: Player name
+		item_to_give_name = player_name + "Archipelago Item"
+	elif vague_itemname_hints == 3:
+		# AP: "An Archipelago Item"
+		item_to_give_name = "An Archipelago Item"
+	else:
+		item_to_give_name = "An Archipelago Item"
+
 
 	upgradeDescription.upgrade_name.text = item_to_give_name
 	upgradeDescription.description.text = "[center]%s[/center]" % item_description
@@ -428,13 +453,14 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 	
 	var player_name: String = scouted_location["playerName"]
 	var item_name: String = scouted_location["itemName"]
+	var item_classification: String = scouted_location["itemClassification"]
 	
 	var item_description: String = "{Item_Description}\n{Location_Name}"
 
 	if player_name.contains("you"):
 		player_name = player_name.insert(player_name.find("[/"),"r")
 		player_name += " "
-		
+
 		var item = MilestoneStore.search(item_name)
 		if item != null:
 			item_description = item_description.format({"Item_Description":item.unlock_desc})
@@ -444,7 +470,22 @@ func _load_milestone(chain: ModLoaderHookChain,_milestone: Milestone) -> void:
 	
 	item_description = item_description.format({"Location_Name": ap_location_name})
 
-	var item_to_give_name = player_name + item_name
+	var item_to_give_name = ""
+	# Determine item name in descriptions from Vague Hints option
+	if vague_itemname_hints == 0:
+		# Off/Full: Player Name and Item Name
+		item_to_give_name = player_name + item_name
+	elif vague_itemname_hints == 1:
+		# Class: Item Classification (Progressive/Filler/Trap/etc)
+		item_to_give_name = "An Archipelago " + item_classification + " Item"
+	elif vague_itemname_hints == 2:
+		# Player: Player name
+		item_to_give_name = player_name + "Archipelago Item"
+	elif vague_itemname_hints == 3:
+		# AP: "An Archipelago Item"
+		item_to_give_name = "An Archipelago Item"
+	else:
+		item_to_give_name = "An Archipelago Item"
 	
 	for milestone_entry in milestonePage.milestone_vbox.get_children():
 		
@@ -523,6 +564,7 @@ func _connected_to_room() -> void:
 	var slot_data = apClient._slot_data
 
 	goal = slot_data["goal"]
+	vague_itemname_hints = slot_data["vague_hints"]
 
 	# Add new milestones to milestone data.
 	# TODO: Currently this just adds every new milestone. not a problem but if I were to add more then im just adding unneeded data.
@@ -574,6 +616,7 @@ func _get_scout_data(scout_data) -> void: # When scout data is retrieved parse i
 		loc_data["locationID"] = item.locationId
 		loc_data["playerName"] = item.playerName
 		loc_data["itemName"] = item.itemName
+		loc_data["itemClassification"] = item.classificationName
 		var idx: String = apClient._location_id_to_name[item.locationId]
 		scouted_locations[idx] = loc_data
 
